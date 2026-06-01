@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="候诊区实景照片占位">
+  <rect width="900" height="520" fill="#eef7ff"/>
+  <rect x="70" y="80" width="760" height="360" rx="14" fill="#fff" stroke="#b7d8f0" stroke-width="4"/>
+  <rect x="150" y="260" width="160" height="78" rx="16" fill="#1478c8"/>
+  <rect x="370" y="260" width="160" height="78" rx="16" fill="#1478c8"/>
+  <rect x="590" y="260" width="160" height="78" rx="16" fill="#1478c8"/>
+  <rect x="190" y="180" width="520" height="44" rx="8" fill="#d6f0ff"/>
+  <text x="286" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">候诊区照片占位</text>
+</svg>

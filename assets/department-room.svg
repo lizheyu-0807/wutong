@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="检查室实景照片占位">
+  <rect width="900" height="520" fill="#eef7ff"/>
+  <rect x="75" y="82" width="750" height="356" rx="14" fill="#fff" stroke="#b7d8f0" stroke-width="4"/>
+  <rect x="145" y="284" width="360" height="72" rx="18" fill="#1478c8"/>
+  <circle cx="630" cy="235" r="74" fill="#d6f0ff" stroke="#1478c8" stroke-width="12"/>
+  <path d="M630 160v-60M590 302l-55 55M670 302l55 55" stroke="#1478c8" stroke-width="16" stroke-linecap="round"/>
+  <text x="286" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">检查室照片占位</text>
+</svg>

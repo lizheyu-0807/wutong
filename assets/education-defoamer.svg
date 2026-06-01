@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="祛泡剂宣教图占位">
+  <rect width="900" height="520" fill="#f2fbf8"/>
+  <rect x="70" y="70" width="760" height="380" rx="18" fill="#ffffff" stroke="#b9e7db" stroke-width="4"/>
+  <circle cx="230" cy="260" r="72" fill="#0f8a7a"/>
+  <circle cx="320" cy="190" r="32" fill="#93dcca"/>
+  <circle cx="350" cy="310" r="42" fill="#c8f0e7"/>
+  <circle cx="185" cy="170" r="24" fill="#93dcca"/>
+  <path d="M430 170h275M430 245h325M430 320h245" stroke="#0f8a7a" stroke-width="24" stroke-linecap="round"/>
+  <text x="438" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">祛泡剂说明占位</text>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="离院出口实景照片占位">
+  <rect width="900" height="520" fill="#eef7ff"/>
+  <rect x="80" y="82" width="740" height="356" rx="14" fill="#fff" stroke="#b7d8f0" stroke-width="4"/>
+  <rect x="190" y="160" width="220" height="220" rx="12" fill="#d6f0ff"/>
+  <path d="M510 270h170M632 210l70 60-70 60" stroke="#0f8a7a" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="286" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">离院出口照片占位</text>
+</svg>

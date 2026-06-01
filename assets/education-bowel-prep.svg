@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="清肠准备宣教图占位">
+  <rect width="900" height="520" fill="#eef7ff"/>
+  <rect x="70" y="70" width="760" height="380" rx="18" fill="#ffffff" stroke="#b7d8f0" stroke-width="4"/>
+  <circle cx="225" cy="245" r="92" fill="#d6f0ff"/>
+  <rect x="190" y="145" width="70" height="190" rx="18" fill="#1478c8"/>
+  <rect x="178" y="120" width="94" height="36" rx="10" fill="#063765"/>
+  <path d="M410 170h300M410 240h260M410 310h310" stroke="#1478c8" stroke-width="26" stroke-linecap="round"/>
+  <text x="450" y="400" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">清肠准备图片占位</text>
+</svg>
