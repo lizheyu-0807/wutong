@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="禁食禁水宣教图占位">
-  <rect width="900" height="520" fill="#fff4dc"/>
-  <rect x="70" y="70" width="760" height="380" rx="18" fill="#ffffff" stroke="#f4c46a" stroke-width="4"/>
-  <circle cx="250" cy="250" r="105" fill="#ffe3a7"/>
-  <path d="M190 190l120 120M310 190L190 310" stroke="#b42318" stroke-width="24" stroke-linecap="round"/>
-  <path d="M420 175h290M420 250h250M420 325h315" stroke="#a65f00" stroke-width="24" stroke-linecap="round"/>
-  <text x="432" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">禁食禁水提醒占位</text>
-</svg>
