@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="术后注意事项图文占位">
-  <rect width="900" height="520" fill="#fff4dc"/>
-  <rect x="70" y="70" width="760" height="380" rx="18" fill="#ffffff" stroke="#f4c46a" stroke-width="4"/>
-  <path d="M230 310c-70-42-92-102-64-154 24-45 86-46 116-3 30-43 92-42 116 3 28 52 6 112-64 154l-52 31-52-31z" fill="#1478c8"/>
-  <path d="M445 175h275M445 250h310M445 325h245" stroke="#a65f00" stroke-width="24" stroke-linecap="round"/>
-  <text x="430" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">术后宣教图占位</text>
-</svg>

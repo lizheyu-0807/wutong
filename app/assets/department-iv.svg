@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="穿刺室实景照片占位">
-  <rect width="900" height="520" fill="#f2fbf8"/>
-  <rect x="85" y="82" width="730" height="355" rx="14" fill="#fff" stroke="#b9e7db" stroke-width="4"/>
-  <rect x="145" y="300" width="610" height="58" rx="12" fill="#0f8a7a"/>
-  <rect x="210" y="170" width="180" height="90" rx="12" fill="#d3f2ea"/>
-  <path d="M510 150v155M470 190h80" stroke="#0f8a7a" stroke-width="18" stroke-linecap="round"/>
-  <text x="286" y="405" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#063765">穿刺室照片占位</text>
-</svg>

@@ -19,6 +19,7 @@ wutong 是“无痛胃肠镜全流程智能导诊微信小程序”的第一版 
 | `docs/requirements.md` | 原始需求和 MVP 边界 |
 | `docs/handoff.md` | 已完成内容、验证结果、当前限制 |
 | `docs/cost-estimate.md` | 微信小程序上线服务器体量和费用表 |
+| `docs/cost-calculation-2026-06-02.md` | 详细成本核算、三档上线预算和价格来源 |
 | `docs/improvement-plan.md` | 十个后续改进方案 |
 | `docs/operations.md` | 管理员、后台配置、测试流程操作步骤 |
 | `AGENTS.md` | 给后续 AI/开发者看的项目规则 |
@@ -72,5 +73,6 @@ node --check wutong/app/server.mjs
 1. `docs/handoff.md`
 2. `docs/requirements.md`
 3. `docs/operations.md`
-4. `docs/cost-estimate.md`
-5. `docs/improvement-plan.md`
+4. `docs/cost-calculation-2026-06-02.md`
+5. `docs/cost-estimate.md`
+6. `docs/improvement-plan.md`
