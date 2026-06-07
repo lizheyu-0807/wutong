@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" role="img" aria-label="内镜中心护士站实景照片占位">
+  <rect width="900" height="520" fill="#eaf5ff"/>
+  <rect x="70" y="88" width="760" height="344" rx="14" fill="#fff" stroke="#b7d8f0" stroke-width="4"/>
+  <rect x="120" y="280" width="660" height="90" rx="10" fill="#1478c8"/>
+  <rect x="160" y="150" width="250" height="86" rx="8" fill="#d6f0ff"/>
+  <rect x="490" y="150" width="250" height="86" rx="8" fill="#d6f0ff"/>
+  <text x="272" y="335" font-family="Microsoft YaHei, sans-serif" font-size="42" font-weight="700" fill="#fff">护士站照片占位</text>
+</svg>
