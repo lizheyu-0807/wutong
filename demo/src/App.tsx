@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  AlertTriangle,
   ArrowLeft,
   BadgeCheck,
   Bell,
@@ -9,11 +8,9 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
-  ClipboardList,
   Clock3,
   Download,
   FileCheck2,
-  FileText,
   Home,
   LogIn,
   MessageSquareText,
@@ -51,7 +48,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Progress } from '@/components/ui/progress'
 import { Switch } from '@/components/ui/switch'
 import {
   Table,
@@ -79,7 +75,9 @@ import {
 import type { AssessmentRecord } from '@/lib/assessment'
 
 type RouteView = 'mini' | 'admin' | 'assessment'
-type MiniPage = 'home' | 'detail' | 'assessment' | 'assessmentReport' | 'notices' | 'aftercare' | 'profile'
+type MiniRootPage = 'home' | 'assessment' | 'profile'
+type HomeMode = 'flow' | 'detail'
+type ProfileMode = 'info' | 'assessmentReport'
 type AdminPage = 'overview' | 'users' | 'assessmentAdmin' | 'assessmentRecords' | 'templates' | 'content' | 'touch' | 'account'
 type NodeStatus = 'done' | 'current' | 'late' | 'pending'
 
@@ -593,7 +591,9 @@ function App() {
 }
 
 function MiniDemo() {
-  const [page, setPage] = useState<MiniPage>('home')
+  const [page, setPage] = useState<MiniRootPage>('home')
+  const [homeMode, setHomeMode] = useState<HomeMode>('flow')
+  const [profileMode, setProfileMode] = useState<ProfileMode>('info')
   const [selectedNodeId, setSelectedNodeId] = useState('fasting')
   const [completed, setCompleted] = useState<string[]>(['diet'])
   const [reminderOn, setReminderOn] = useState(true)
@@ -618,89 +618,102 @@ function MiniDemo() {
   const nextNode = nodes.find((node) => node.status === 'current') ?? nodes.find((node) => node.status === 'pending') ?? nodes[0]
   const progressValue = Math.round((nodes.filter((node) => node.status === 'done').length / nodes.length) * 100)
 
-  const openNode = (id: string, targetPage: MiniPage = 'detail') => {
+  const openNode = (id: string) => {
     setSelectedNodeId(id)
-    setPage(targetPage)
+    setHomeMode('detail')
+    setPage('home')
+  }
+
+  const returnToFlow = () => {
+    setHomeMode('flow')
+    setPage('home')
+  }
+
+  const openAssessment = () => {
+    setPage('assessment')
   }
 
   const openProfile = () => {
     setLatestAssessment(readLatestPatientAssessment())
+    setProfileMode('info')
     setPage('profile')
   }
 
   const openAssessmentReport = () => {
     setLatestAssessment(readLatestPatientAssessment())
-    setPage('assessmentReport')
+    setProfileMode('assessmentReport')
+    setPage('profile')
   }
 
   const completeNode = (id: string) => {
     setCompleted((items) => (items.includes(id) ? items : [...items, id]))
-    if (id === 'leave') {
-      setPage('aftercare')
-      return
-    }
-    setPage('home')
+    returnToFlow()
   }
 
   return (
     <main className="mini-immersive">
       <div className="mini-device">
         <MiniStatusBar />
-        <MiniTitleBar page={page} setPage={setPage} />
+        <MiniTitleBar
+          page={page}
+          homeMode={homeMode}
+          profileMode={profileMode}
+          setPage={setPage}
+          setHomeMode={setHomeMode}
+          openProfile={openProfile}
+        />
         <div className="mini-content">
           <AnimatePresence mode="wait">
-            {page === 'home' && (
-              <MotionPage key="home">
+            {page === 'home' && homeMode === 'flow' && (
+              <MotionPage key="home-flow">
                 <MiniHome
                   nodes={nodes}
                   nextNode={nextNode}
                   progressValue={progressValue}
                   reminderOn={reminderOn}
                   openNode={openNode}
-                  openAssessment={() => setPage('assessment')}
+                  openAssessment={openAssessment}
                 />
               </MotionPage>
             )}
-            {page === 'detail' && (
+            {page === 'home' && homeMode === 'detail' && (
               <MotionPage key={`detail-${selectedNode.id}`}>
                 <MiniNodeDetail
                   node={selectedNode}
+                  nodes={nodes}
                   reminderOn={reminderOn}
                   setReminderOn={setReminderOn}
                   completeNode={completeNode}
-                  openNotices={() => openNode(selectedNode.id, 'notices')}
-                  openAssessment={() => setPage('assessment')}
+                  openAssessment={openAssessment}
+                  returnToFlow={returnToFlow}
+                  openNode={openNode}
                 />
               </MotionPage>
             )}
             {page === 'assessment' && (
               <MotionPage key="assessment">
-                <AnesthesiaAssessment embedded onBack={() => setPage('home')} />
+                <AnesthesiaAssessment embedded onBack={returnToFlow} />
               </MotionPage>
             )}
-            {page === 'notices' && (
-              <MotionPage key={`notices-${selectedNode.id}`}>
-                <MiniNotices node={selectedNode} back={() => openNode(selectedNode.id, 'detail')} />
-              </MotionPage>
-            )}
-            {page === 'assessmentReport' && (
-              <MotionPage key="assessmentReport">
-                <MiniAssessmentReport assessment={latestAssessment} back={openProfile} openAssessment={() => setPage('assessment')} />
-              </MotionPage>
-            )}
-            {page === 'aftercare' && (
-              <MotionPage key="aftercare">
-                <MiniAftercare />
-              </MotionPage>
-            )}
-            {page === 'profile' && (
+            {page === 'profile' && profileMode === 'info' && (
               <MotionPage key="profile">
                 <MiniProfile assessment={latestAssessment} openAssessmentReport={openAssessmentReport} />
               </MotionPage>
             )}
+            {page === 'profile' && profileMode === 'assessmentReport' && (
+              <MotionPage key="profile-assessment-report">
+                <MiniAssessmentReport assessment={latestAssessment} back={openProfile} openAssessment={openAssessment} />
+              </MotionPage>
+            )}
           </AnimatePresence>
         </div>
-        <MiniBottomNav page={page} setPage={setPage} openNode={() => openNode(nextNode.id)} openAssessment={() => setPage('assessment')} openProfile={openProfile} />
+        <MiniBottomNav
+          page={page}
+          setPage={setPage}
+          setHomeMode={setHomeMode}
+          openAssessment={openAssessment}
+          openProfile={openProfile}
+        />
       </div>
     </main>
   )
@@ -732,17 +745,45 @@ function MiniStatusBar() {
   )
 }
 
-function MiniTitleBar({ page, setPage }: { page: MiniPage; setPage: (page: MiniPage) => void }) {
+function MiniTitleBar({
+  page,
+  homeMode,
+  profileMode,
+  setPage,
+  setHomeMode,
+  openProfile,
+}: {
+  page: MiniRootPage
+  homeMode: HomeMode
+  profileMode: ProfileMode
+  setPage: (page: MiniRootPage) => void
+  setHomeMode: (mode: HomeMode) => void
+  openProfile: () => void
+}) {
+  const canGoBack = page === 'assessment' || (page === 'home' && homeMode === 'detail') || (page === 'profile' && profileMode === 'assessmentReport')
+  const goBack = () => {
+    if (page === 'home' && homeMode === 'detail') {
+      setHomeMode('flow')
+      return
+    }
+    if (page === 'profile' && profileMode === 'assessmentReport') {
+      openProfile()
+      return
+    }
+    setPage('home')
+    setHomeMode('flow')
+  }
+
   return (
     <div className="mini-titlebar">
-      {page === 'home' ? (
-        <span />
-      ) : (
-        <Button variant="ghost" size="icon-sm" onClick={() => setPage('home')} aria-label="返回首页">
+      {canGoBack ? (
+        <Button variant="ghost" size="icon-sm" onClick={goBack} aria-label="返回">
           <ArrowLeft />
         </Button>
+      ) : (
+        <span />
       )}
-      <strong>{miniTitle(page)}</strong>
+      <strong>{miniTitle(page, homeMode, profileMode)}</strong>
       <Button variant="ghost" size="icon-sm" onClick={() => setPage('profile')} aria-label="我的信息">
         <UserRound />
       </Button>
@@ -762,12 +803,12 @@ function MiniHome({
   nextNode: FlowNode
   progressValue: number
   reminderOn: boolean
-  openNode: (id: string, page?: MiniPage) => void
+  openNode: (id: string) => void
   openAssessment: () => void
 }) {
   return (
     <>
-      <section className="identity-card">
+      <section className="identity-card home-clean-card">
         <div>
           <span>微信已登录</span>
           <h1>李女士的检查准备</h1>
@@ -776,52 +817,43 @@ function MiniHome({
         <Badge variant="secondary">准备中</Badge>
       </section>
 
-      <motion.section
-        className="next-card"
-        animate={{ y: [0, -4, 0] }}
-        transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <div className="next-card-head">
-          <Badge variant="default">下一步</Badge>
-          <span>{nextNode.time}</span>
+      <section className="home-dashboard">
+        <div className="home-dashboard-main">
+          <span>当前关键节点</span>
+          <strong>{nextNode.title}</strong>
+          <em>{nextNode.time} · {nextNode.summary}</em>
         </div>
-        <h2>{nextNode.title}</h2>
-        <p>{nextNode.summary}</p>
-        <div className="reason-note">
-          <ShieldCheck />
-          <span>{nextNode.why}</span>
+        <div className="home-progress-ring" aria-label={`准备进度 ${progressValue}%`}>
+          <strong>{progressValue}%</strong>
+          <span>进度</span>
         </div>
-        <Button size="lg" onClick={() => openNode(nextNode.id)}>
-          查看操作步骤
-          <ChevronRight data-icon="inline-end" />
-        </Button>
-      </motion.section>
+      </section>
 
-      <Card className="flow-card assessment-action-card">
-        <CardHeader>
-          <CardTitle>院前麻醉评估</CardTitle>
-          <CardDescription>请在到院前填写，方便麻醉医生提前识别用药、过敏、禁食禁水和基础病风险。</CardDescription>
-          <CardAction><Badge variant="default">待填写</Badge></CardAction>
-        </CardHeader>
-        <CardContent className="assessment-action-body">
+      <FlowCardCarousel nodes={nodes} openNode={openNode} />
+
+      <section className="home-assessment-strip">
+        <div>
+          <span>院前麻醉评估</span>
+          <strong>待填写 · 填写后停止同类提醒</strong>
+          <p>请在到院前填写，方便提前识别用药、过敏、禁食禁水和基础病风险。</p>
           <div className="reason-note">
             <Stethoscope />
             <span>未填写前会在院前多次提醒，并附上评估链接和填写原因；填写后自动停止推送。</span>
           </div>
-          <Button size="lg" onClick={openAssessment}>
+        </div>
+        <Button size="lg" onClick={openAssessment}>
             现在填写评估表
-            <ChevronRight data-icon="inline-end" />
-          </Button>
-        </CardContent>
-      </Card>
+          <ChevronRight data-icon="inline-end" />
+        </Button>
+      </section>
 
-      <Card className="flow-card reminder-plan-card">
+      <Card className="flow-card reminder-plan-card compact-home-reminder">
         <CardHeader>
           <CardTitle>院前评估提醒</CardTitle>
-          <CardDescription>当前状态：待填写评估 · 系统会继续提醒，直到提交为止。</CardDescription>
+          <CardDescription>{reminderOn ? '节点提醒已开启' : '节点提醒未开启'} · 待填写评估会继续提醒。</CardDescription>
         </CardHeader>
         <CardContent className="reminder-plan-list">
-          {assessmentReminderPlan.map((item) => (
+          {assessmentReminderPlan.slice(0, 2).map((item) => (
             <div key={item.time}>
               <span className={`mini-dot is-${item.status}`} />
               <span>
@@ -832,60 +864,73 @@ function MiniHome({
           ))}
         </CardContent>
       </Card>
-
-      <Card className="flow-card">
-        <CardHeader>
-          <CardTitle>我的准备进度</CardTitle>
-          <CardDescription>{progressValue}% 已完成 · {reminderOn ? '节点提醒已开启' : '节点提醒未开启'}</CardDescription>
-        </CardHeader>
-        <CardContent className="progress-stack">
-          <Progress value={progressValue} />
-          <Alert className="mini-action-alert">
-            <PhoneCall />
-            <AlertTitle>未按要求时的处理建议</AlertTitle>
-            <AlertDescription>如果关键事项未完成，请先查看补救说明，必要时电话联系工作人员。</AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-
-      <section className="timeline-list">
-        <div className="mini-section-title">
-          <h2>今日流程</h2>
-          <span>按预计手术时间自动生成</span>
-        </div>
-        {nodes.map((node) => (
-          <button key={node.id} className={`timeline-row is-${node.status}`} onClick={() => openNode(node.id)}>
-            <span className="timeline-dot" />
-            <span className="timeline-main">
-              <strong>{node.time}</strong>
-              <em>{node.title}</em>
-            </span>
-            <StatusBadge status={node.status} />
-          </button>
-        ))}
-      </section>
     </>
+  )
+}
+
+function FlowCardCarousel({ nodes, openNode }: { nodes: FlowNode[]; openNode: (id: string) => void }) {
+  return (
+    <section className="flow-card-carousel" aria-label="今日流程卡片流">
+      <div className="mini-section-title flow-carousel-title">
+        <h2>今日流程</h2>
+        <span>上下滑动查看每个节点</span>
+      </div>
+      <div className="flow-card-rail">
+        {nodes.map((node, index) => (
+          <motion.button
+            key={node.id}
+            type="button"
+            className={`flow-node-card is-${node.status} ${node.status === 'current' ? 'is-featured' : ''}`}
+            onClick={() => openNode(node.id)}
+            initial={{ opacity: 0, y: 34, scale: 0.94 }}
+            animate={{
+              opacity: node.status === 'current' ? 1 : 0.82,
+              y: 0,
+              scale: node.status === 'current' ? 1 : 0.88,
+            }}
+            transition={{ delay: index * 0.045, duration: 0.32, ease: 'easeOut' }}
+          >
+            <span className="flow-node-line" />
+            <span className="flow-node-body">
+              <span className="flow-node-meta">
+                <em>{statusLabel(node.status)}</em>
+                <strong>{node.time}</strong>
+              </span>
+              <span className="flow-node-title">{node.title}</span>
+              <span className="flow-node-summary">{node.summary}</span>
+            </span>
+            <img src={node.image} alt="" />
+          </motion.button>
+        ))}
+      </div>
+    </section>
   )
 }
 
 function MiniNodeDetail({
   node,
+  nodes,
   reminderOn,
   setReminderOn,
   completeNode,
-  openNotices,
   openAssessment,
+  returnToFlow,
+  openNode,
 }: {
   node: FlowNode
+  nodes: FlowNode[]
   reminderOn: boolean
   setReminderOn: (checked: boolean) => void
   completeNode: (id: string) => void
-  openNotices: () => void
   openAssessment: () => void
+  returnToFlow: () => void
+  openNode: (id: string) => void
 }) {
   return (
-    <>
-      <section className="node-hero">
+    <section className="node-detail-shell">
+      <FlowBraceletButton nodes={nodes} currentNodeId={node.id} returnToFlow={returnToFlow} openNode={openNode} />
+
+      <section className="node-hero node-detail-hero">
         <div>
           <Badge variant={node.status === 'done' ? 'secondary' : 'default'}>{statusLabel(node.status)}</Badge>
           <h1>{node.title}</h1>
@@ -940,11 +985,21 @@ function MiniNodeDetail({
       <Card className="flow-card">
         <CardHeader>
           <CardTitle>注意事项</CardTitle>
-          <CardDescription>{node.notices[0]}</CardDescription>
-          <CardAction>
-            <Button variant="ghost" size="sm" onClick={openNotices}>查看</Button>
-          </CardAction>
+          <CardDescription>当前节点需要特别留意的内容。</CardDescription>
         </CardHeader>
+        <CardContent className="detail-notice-list">
+          {node.notices.map((notice, index) => (
+            <div key={notice} className="notice-row">
+              <span>{index + 1}</span>
+              <p>{notice}</p>
+            </div>
+          ))}
+          <Alert className="mini-action-alert">
+            <PhoneCall />
+            <AlertTitle>未按要求完成怎么办</AlertTitle>
+            <AlertDescription>先记录发生时间，再按页面说明或电话联系工作人员。</AlertDescription>
+          </Alert>
+        </CardContent>
       </Card>
 
       <Card className="flow-card subtle-card">
@@ -961,64 +1016,49 @@ function MiniNodeDetail({
         <Check data-icon="inline-start" />
         {node.status === 'done' ? `已完成：${node.completedAt}` : node.action}
       </Button>
-    </>
+    </section>
   )
 }
 
-function MiniNotices({ node, back }: { node: FlowNode; back: () => void }) {
+function FlowBraceletButton({
+  nodes,
+  currentNodeId,
+  returnToFlow,
+  openNode,
+}: {
+  nodes: FlowNode[]
+  currentNodeId: string
+  returnToFlow: () => void
+  openNode: (id: string) => void
+}) {
   return (
-    <>
-      <section className="plain-title">
-        <Badge variant="secondary">{node.time}</Badge>
-        <h1>{node.title}</h1>
-        <p>当前事项相关注意点。</p>
-      </section>
-      {node.notices.map((notice, index) => (
-        <div key={notice} className="notice-row">
-          <span>{index + 1}</span>
-          <p>{notice}</p>
+    <motion.div
+      className="flow-bracelet-wrap"
+      initial={{ opacity: 0, scale: 0.72, x: 18, y: -12 }}
+      animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+    >
+      <button type="button" className="flow-bracelet-button" onClick={returnToFlow} aria-label="回到卡片流">
+        <span>卡片手链</span>
+        <strong>回到卡片流</strong>
+        <div className="flow-bracelet-stack" aria-hidden="true">
+          {nodes.slice(0, 5).map((node, index) => (
+            <i key={node.id} className={node.id === currentNodeId ? 'active' : ''} style={{ transform: `translateY(${index * 5}px) scale(${1 - index * 0.055})` }} />
+          ))}
         </div>
-      ))}
-      <Alert className="mini-action-alert">
-        <AlertTriangle />
-        <AlertTitle>未按要求完成怎么办</AlertTitle>
-        <AlertDescription>先记录发生时间，再按页面说明或电话联系工作人员。</AlertDescription>
-      </Alert>
-      <Button size="lg" onClick={back}>
-        回到操作步骤
-        <ChevronRight data-icon="inline-end" />
-      </Button>
-    </>
-  )
-}
-
-function MiniAftercare() {
-  const items = [
-    ['饮食', '按说明先少量饮水，确认无不适后再逐步进食。'],
-    ['活动', '无痛检查当天不要驾车、骑车或高空作业。'],
-    ['异常', '持续腹痛、黑便、发热或头晕明显时及时联系。'],
-    ['报告', '按工作人员告知时间和地点领取报告。'],
-  ]
-  return (
-    <>
-      <section className="node-hero aftercare-hero">
-        <div>
-          <Badge variant="secondary">后续说明</Badge>
-          <h1>检查后安排</h1>
-          <p>饮食、活动、异常处理和取报告都在这里查看。</p>
-        </div>
-        <img src={postOpImage} alt="" />
-      </section>
-      {items.map(([title, desc]) => (
-        <div key={title} className="aftercare-item">
-          <FileText />
-          <span>
-            <strong>{title}</strong>
-            <em>{desc}</em>
-          </span>
-        </div>
-      ))}
-    </>
+      </button>
+      <div className="flow-bracelet-dots" aria-label="切换流程节点">
+        {nodes.map((node) => (
+          <button
+            key={node.id}
+            type="button"
+            className={node.id === currentNodeId ? 'active' : ''}
+            onClick={() => openNode(node.id)}
+            aria-label={`查看${node.title}`}
+          />
+        ))}
+      </div>
+    </motion.div>
   )
 }
 
@@ -1120,38 +1160,51 @@ function MiniAssessmentReport({
 function MiniBottomNav({
   page,
   setPage,
-  openNode,
+  setHomeMode,
   openAssessment,
   openProfile,
 }: {
-  page: MiniPage
-  setPage: (page: MiniPage) => void
-  openNode: () => void
+  page: MiniRootPage
+  setPage: (page: MiniRootPage) => void
+  setHomeMode: (mode: HomeMode) => void
   openAssessment: () => void
   openProfile: () => void
 }) {
+  const miniNavItems: Array<{ page: MiniRootPage; label: string; icon: LucideIcon; action: () => void }> = [
+    {
+      page: 'home',
+      label: '首页',
+      icon: Home,
+      action: () => {
+        setHomeMode('flow')
+        setPage('home')
+      },
+    },
+    {
+      page: 'assessment',
+      label: '评估',
+      icon: Stethoscope,
+      action: openAssessment,
+    },
+    {
+      page: 'profile',
+      label: '我的',
+      icon: UserRound,
+      action: openProfile,
+    },
+  ]
+
   return (
     <nav className="mini-nav">
-      <button className={page === 'home' ? 'active' : ''} onClick={() => setPage('home')}>
-        <Home />
-        <span>首页</span>
-      </button>
-      <button className={page === 'detail' ? 'active' : ''} onClick={openNode}>
-        <ClipboardList />
-        <span>流程</span>
-      </button>
-      <button className={page === 'assessment' ? 'active' : ''} onClick={openAssessment}>
-        <Stethoscope />
-        <span>评估</span>
-      </button>
-      <button className={page === 'aftercare' ? 'active' : ''} onClick={() => setPage('aftercare')}>
-        <FileText />
-        <span>后续</span>
-      </button>
-      <button className={page === 'profile' ? 'active' : ''} onClick={openProfile}>
-        <UserRound />
-        <span>我的</span>
-      </button>
+      {miniNavItems.map((item) => {
+        const Icon = item.icon
+        return (
+          <button key={item.page} className={page === item.page ? 'active' : ''} onClick={item.action}>
+            <Icon />
+            <span>{item.label}</span>
+          </button>
+        )
+      })}
     </nav>
   )
 }
@@ -2274,10 +2327,6 @@ function InfoLine({ label, value }: { label: string; value: string }) {
   )
 }
 
-function StatusBadge({ status }: { status: NodeStatus }) {
-  return <Badge variant={status === 'current' ? 'default' : 'secondary'}>{statusLabel(status)}</Badge>
-}
-
 function StatusPill({ label }: { label: string }) {
   const tone = label.includes('需') || label.includes('未') || label.includes('电话')
     ? 'rose'
@@ -2296,14 +2345,12 @@ function statusLabel(status: NodeStatus) {
   return '待开始'
 }
 
-function miniTitle(page: MiniPage) {
-  const titles: Record<MiniPage, string> = {
+function miniTitle(page: MiniRootPage, homeMode: HomeMode, profileMode: ProfileMode) {
+  if (page === 'home' && homeMode === 'detail') return '事项详情'
+  if (page === 'profile' && profileMode === 'assessmentReport') return '麻醉评估报告'
+  const titles: Record<MiniRootPage, string> = {
     home: '我的检查准备',
-    detail: '事项详情',
     assessment: '麻醉评估',
-    assessmentReport: '麻醉评估报告',
-    notices: '注意事项',
-    aftercare: '后续说明',
     profile: '我的信息',
   }
   return titles[page]

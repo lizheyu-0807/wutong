@@ -9,6 +9,10 @@ const assessmentLib = readFileSync(resolve('src/lib/assessment.ts'), 'utf8');
 
 const checks = [
   ['patient home exposes a primary anesthesia card', app.includes('院前麻醉评估') && app.includes('现在填写评估表')],
+  ['patient mini bottom navigation keeps only home assessment and profile roots', app.includes('function MiniBottomNav') && app.includes('const miniNavItems') && app.includes('label: \'首页\'') && app.includes('label: \'评估\'') && app.includes('label: \'我的\'') && !app.includes('<span>流程</span>') && !app.includes('<span>后续</span>')],
+  ['patient home uses apple watch style vertical card flow', app.includes('function FlowCardCarousel') && app.includes('flow-card-carousel') && app.includes('flow-node-card') && app.includes('is-featured')],
+  ['patient detail shows a compact flow bracelet return control', app.includes('function FlowBraceletButton') && app.includes('flow-bracelet-button') && app.includes('卡片手链') && app.includes('回到卡片流')],
+  ['patient detail folds notices into the node detail page instead of a separate root page', app.includes('node-detail-shell') && app.includes('detail-notice-list') && !app.includes('function MiniNotices') && !app.includes("page === 'notices'")],
   ['patient flow explains repeated reminders stop after submission', app.includes('未填写前会在院前多次提醒') && app.includes('填写后自动停止推送')],
   ['admin sidebar renames push management', app.includes('麻醉评估推送管理')],
   ['admin sidebar exposes full anesthesia backend below push management', app.includes("assessmentRecords") && app.includes('麻醉评估后台')],

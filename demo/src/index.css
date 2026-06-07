@@ -213,6 +213,14 @@ svg {
   line-height: 1.16;
 }
 
+.home-clean-card {
+  min-height: 106px;
+  border-color: rgba(244, 151, 109, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 235, 216, 0.72)),
+    #fff7ef;
+}
+
 .identity-card p,
 .next-card p,
 .node-hero p,
@@ -342,6 +350,262 @@ svg {
   overflow-wrap: anywhere;
   font-size: 21px;
   line-height: 1.25;
+}
+
+.home-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(98, 65, 42, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 14px;
+  box-shadow: 0 18px 40px rgba(85, 50, 24, 0.07);
+}
+
+.home-dashboard-main span,
+.home-assessment-strip span,
+.flow-node-meta em,
+.flow-bracelet-button span {
+  display: block;
+  color: var(--soft-ink);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.home-dashboard-main strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1.12;
+}
+
+.home-dashboard-main em {
+  display: block;
+  margin-top: 5px;
+  color: var(--soft-ink);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.home-progress-ring {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  border: 1px solid rgba(242, 118, 91, 0.22);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #fffaf4 58%, transparent 60%),
+    conic-gradient(var(--coral) 0 17%, rgba(242, 118, 91, 0.12) 17% 100%);
+}
+
+.home-progress-ring strong,
+.home-progress-ring span {
+  grid-area: 1 / 1;
+}
+
+.home-progress-ring strong {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
+  transform: translateY(-6px);
+}
+
+.home-progress-ring span {
+  color: var(--soft-ink);
+  font-size: 10px;
+  font-weight: 850;
+  transform: translateY(13px);
+}
+
+.flow-card-carousel {
+  position: relative;
+  overflow: hidden;
+  margin: 2px -8px 0;
+  padding: 0 8px 8px;
+}
+
+.flow-carousel-title {
+  padding-inline: 8px;
+}
+
+.flow-card-rail {
+  position: relative;
+  display: flex;
+  max-height: 438px;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  padding: 10px 0 120px;
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+}
+
+.flow-card-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.flow-card-rail::before {
+  content: "";
+  position: absolute;
+  top: 26px;
+  bottom: 34px;
+  left: 50%;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, #59c9d0 12%, #59c9d0 84%, transparent);
+  transform: translateX(-50%);
+}
+
+.flow-node-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 108px;
+  margin: -4px 0;
+  border: 1px solid rgba(98, 65, 42, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.86);
+  color: inherit;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  scroll-snap-align: center;
+  box-shadow: 0 14px 34px rgba(85, 50, 24, 0.08);
+  transform-origin: center;
+}
+
+.flow-node-card.is-featured {
+  z-index: 2;
+  min-height: 156px;
+  border-color: rgba(242, 118, 91, 0.18);
+  background:
+    radial-gradient(circle at 88% 82%, rgba(143, 217, 168, 0.56), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 232, 211, 0.82)),
+    #fff7ef;
+  box-shadow: 0 24px 54px rgba(190, 96, 53, 0.16);
+}
+
+.flow-node-card.is-done {
+  margin-inline: auto;
+  width: 78%;
+}
+
+.flow-node-card.is-pending {
+  margin-inline: auto;
+  width: 88%;
+}
+
+.flow-node-line {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  width: 2px;
+  height: 20px;
+  border-radius: 999px;
+  background: #59c9d0;
+  transform: translateX(-50%);
+}
+
+.flow-node-card:first-of-type .flow-node-line {
+  display: none;
+}
+
+.flow-node-body {
+  display: block;
+  min-width: 0;
+}
+
+.flow-node-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.flow-node-meta strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.flow-node-title {
+  display: block;
+  margin-top: 7px;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.flow-node-card.is-featured .flow-node-title {
+  font-size: 27px;
+}
+
+.flow-node-summary {
+  display: block;
+  margin-top: 7px;
+  color: var(--soft-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.flow-node-card img {
+  width: 64px;
+  max-height: 78px;
+  object-fit: contain;
+}
+
+.flow-node-card:not(.is-featured) img {
+  opacity: 0.55;
+  transform: scale(0.86);
+}
+
+.home-assessment-strip {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(79, 189, 159, 0.2);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.93), rgba(235, 250, 243, 0.82)),
+    #f4fbf8;
+  padding: 15px;
+  box-shadow: 0 18px 38px rgba(45, 137, 116, 0.09);
+}
+
+.home-assessment-strip strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.home-assessment-strip p {
+  margin: 7px 0 0;
+  color: var(--soft-ink);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.compact-home-reminder [data-slot="card-header"] {
+  gap: 4px;
+}
+
+.compact-home-reminder .reminder-plan-list {
+  gap: 8px;
 }
 
 .next-card::after,
@@ -515,6 +779,104 @@ svg {
   gap: 12px;
 }
 
+.node-detail-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.node-detail-hero {
+  min-height: 150px;
+  padding-top: 22px;
+  padding-right: 106px;
+}
+
+.flow-bracelet-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: grid;
+  justify-items: end;
+  margin-bottom: -58px;
+  pointer-events: none;
+}
+
+.flow-bracelet-button {
+  position: relative;
+  display: grid;
+  width: 96px;
+  min-height: 82px;
+  gap: 2px;
+  overflow: hidden;
+  border: 1px solid rgba(98, 65, 42, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  color: inherit;
+  text-align: left;
+  box-shadow: 0 16px 34px rgba(85, 50, 24, 0.14);
+  pointer-events: auto;
+  backdrop-filter: blur(14px);
+}
+
+.flow-bracelet-button strong {
+  max-width: 66px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1.08;
+}
+
+.flow-bracelet-stack {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 38px;
+  height: 40px;
+}
+
+.flow-bracelet-stack i {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: block;
+  width: 34px;
+  height: 20px;
+  border: 1px solid rgba(242, 118, 91, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 249, 242, 0.96), rgba(255, 224, 204, 0.92));
+  box-shadow: 0 6px 12px rgba(85, 50, 24, 0.1);
+}
+
+.flow-bracelet-stack i.active {
+  background: linear-gradient(135deg, #fff8ef, #dff5e7);
+  border-color: rgba(79, 189, 159, 0.34);
+}
+
+.flow-bracelet-dots {
+  display: flex;
+  gap: 4px;
+  padding: 5px 8px 0;
+  pointer-events: auto;
+}
+
+.flow-bracelet-dots button {
+  width: 6px;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(118, 107, 99, 0.28);
+  padding: 0;
+  cursor: pointer;
+}
+
+.flow-bracelet-dots button.active {
+  width: 14px;
+  background: var(--coral);
+}
+
 .node-hero h1 {
   margin-top: 9px;
   font-size: 24px;
@@ -592,6 +954,12 @@ svg {
   background: rgba(255, 255, 255, 0.76);
 }
 
+.detail-notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
 .aftercare-hero {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(230, 247, 238, 0.72)),
@@ -612,8 +980,8 @@ svg {
   bottom: 16px;
   left: 18px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 3px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   padding: 7px;
   border: 1px solid rgba(98, 65, 42, 0.1);
   border-radius: 22px;
@@ -626,9 +994,9 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
-  padding: 7px 2px;
+  padding: 8px 2px;
   border: 0;
   border-radius: 16px;
   color: var(--soft-ink);
@@ -1919,8 +2287,21 @@ svg {
     left: 12px;
   }
 
-  .next-card h2 {
-    font-size: 28px;
+  .flow-card-rail {
+    max-height: min(448px, calc(100svh - 334px));
+  }
+
+  .flow-node-card.is-featured .flow-node-title {
+    font-size: 25px;
+  }
+
+  .node-detail-hero {
+    padding-right: 96px;
+  }
+
+  .flow-bracelet-button {
+    width: 90px;
+    min-height: 78px;
   }
 
   .admin-app {
