@@ -441,9 +441,9 @@ svg {
   display: flex;
   max-height: 438px;
   flex-direction: column;
-  gap: 0;
+  gap: 18px;
   overflow-y: auto;
-  padding: 10px 0 120px;
+  padding: 14px 0 128px;
   scroll-snap-type: y proximity;
   scrollbar-width: none;
 }
@@ -455,24 +455,28 @@ svg {
 .flow-card-rail::before {
   content: "";
   position: absolute;
-  top: 26px;
-  bottom: 34px;
+  top: 34px;
+  bottom: 128px;
   left: 50%;
   width: 2px;
   border-radius: 999px;
-  background: linear-gradient(180deg, transparent, #59c9d0 12%, #59c9d0 84%, transparent);
+  background:
+    linear-gradient(180deg, transparent, rgba(89, 201, 208, 0.18) 12%, rgba(89, 201, 208, 0.1) 88%, transparent),
+    repeating-linear-gradient(180deg, rgba(89, 201, 208, 0) 0 18px, rgba(89, 201, 208, 0.38) 18px 30px, rgba(89, 201, 208, 0) 30px 44px);
+  filter: drop-shadow(0 0 8px rgba(89, 201, 208, 0.22));
   transform: translateX(-50%);
 }
 
 .flow-node-card {
   position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 70px;
   align-items: center;
   gap: 12px;
   width: 100%;
   min-height: 108px;
-  margin: -4px 0;
+  margin: 0;
   border: 1px solid rgba(98, 65, 42, 0.08);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.86);
@@ -487,7 +491,7 @@ svg {
 
 .flow-node-card.is-featured {
   z-index: 2;
-  min-height: 156px;
+  min-height: 148px;
   border-color: rgba(242, 118, 91, 0.18);
   background:
     radial-gradient(circle at 88% 82%, rgba(143, 217, 168, 0.56), transparent 34%),
@@ -498,23 +502,77 @@ svg {
 
 .flow-node-card.is-done {
   margin-inline: auto;
-  width: 78%;
+  width: 74%;
+  border-color: rgba(255, 255, 255, 0.56);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(235, 251, 248, 0.22) 48%, rgba(255, 241, 230, 0.28)),
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.9), transparent 30%),
+    radial-gradient(circle at 88% 82%, rgba(126, 225, 206, 0.2), transparent 34%);
+  color: rgba(54, 43, 34, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 12px 28px rgba(41, 119, 116, 0.08);
+  backdrop-filter: blur(16px) saturate(1.22);
+}
+
+.flow-node-card.is-done::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 23px;
+  background: linear-gradient(112deg, transparent 8%, rgba(255, 255, 255, 0.38) 42%, rgba(149, 235, 219, 0.24) 50%, transparent 68%);
+  opacity: 0.5;
+  pointer-events: none;
+  transform: translateX(-18%);
 }
 
 .flow-node-card.is-pending {
   margin-inline: auto;
-  width: 88%;
+  width: 82%;
 }
 
 .flow-node-line {
   position: absolute;
   left: 50%;
-  top: -18px;
-  width: 2px;
-  height: 20px;
+  top: -34px;
+  width: 16px;
+  height: 34px;
   border-radius: 999px;
-  background: #59c9d0;
+  background: transparent;
   transform: translateX(-50%);
+}
+
+.flow-node-line::before,
+.flow-node-line::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.flow-node-line::before {
+  top: 0;
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, rgba(89, 201, 208, 0.2) 20%, rgba(89, 201, 208, 0.9) 56%, rgba(255, 255, 255, 0.84) 58%, rgba(89, 201, 208, 0.44) 78%, transparent);
+  box-shadow: 0 0 14px rgba(89, 201, 208, 0.32);
+}
+
+.flow-node-line::after {
+  bottom: 5px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(89, 201, 208, 0.86);
+  box-shadow: 0 0 0 4px rgba(89, 201, 208, 0.1), 0 0 14px rgba(89, 201, 208, 0.32);
+}
+
+.flow-node-body,
+.flow-node-card img {
+  position: relative;
+  z-index: 1;
 }
 
 .flow-node-card:first-of-type .flow-node-line {
@@ -568,8 +626,23 @@ svg {
 }
 
 .flow-node-card:not(.is-featured) img {
-  opacity: 0.55;
-  transform: scale(0.86);
+  opacity: 0.48;
+  transform: scale(0.82);
+}
+
+.flow-node-card.is-done .flow-node-title {
+  color: rgba(43, 34, 27, 0.86);
+}
+
+.flow-node-card.is-done .flow-node-summary,
+.flow-node-card.is-done .flow-node-meta em,
+.flow-node-card.is-done .flow-node-meta strong {
+  color: rgba(91, 77, 65, 0.62);
+}
+
+.flow-node-card.is-done img {
+  opacity: 0.36;
+  filter: saturate(0.78) contrast(0.92);
 }
 
 .home-assessment-strip {
@@ -2288,7 +2361,7 @@ svg {
   }
 
   .flow-card-rail {
-    max-height: min(448px, calc(100svh - 334px));
+    max-height: min(470px, calc(100svh - 322px));
   }
 
   .flow-node-card.is-featured .flow-node-title {
