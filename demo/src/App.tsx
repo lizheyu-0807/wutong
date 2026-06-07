@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft,
   BadgeCheck,
@@ -33,8 +33,6 @@ import {
 
 import bowelPrepImage from './assets/demo/education-bowel-prep.svg'
 import fastingImage from './assets/demo/education-fasting.svg'
-import postOpImage from './assets/demo/post-op.svg'
-import receptionImage from './assets/demo/department-reception.svg'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -139,100 +137,93 @@ type PatientFilters = {
 
 const flowNodes: FlowNode[] = [
   {
-    id: 'diet',
+    id: 'low-residue-diet',
     stage: '居家准备',
-    time: '前一天 22:00',
-    title: '饮食注意',
-    summary: '今晚保持清淡饮食，帮助明天安排顺利进行。',
-    why: '提前控制饮食，能让第二天准备更稳定。',
-    steps: ['晚餐选择清淡、易消化食物。', '不要饮酒，不吃油腻或难消化食物。', '睡前确认明天预计手术时间和到院时间。'],
-    notices: ['如医生有单独交代，以单独交代为准。', '长期服药人群按工作人员说明执行。'],
-    action: '我已确认饮食要求',
+    time: '检查前一天 18:00',
+    title: '低渣饮食',
+    summary: '晚餐吃低渣饮食，不吃青菜、水果、辣椒，不吃宵夜。',
+    why: '低渣饮食能帮助肠道准备更充分，减少检查当天反复等待或重新准备的风险。',
+    steps: [
+      '检查前一天 18:00 进食低渣饮食，如米粉、面条、粥、包子等。',
+      '不要吃青菜、水果、辣椒等食物。',
+      '当天晚上不吃宵夜，检查当天按要求禁食。',
+    ],
+    notices: ['如预约单或医生另有交代，以预约单和医生交代为准。', '有糖尿病、长期服药或特殊饮食要求时，请按医护人员单独说明执行。'],
+    action: '我已完成低渣饮食',
     image: bowelPrepImage,
     status: 'done',
-    completedAt: '昨天 22:18',
+    completedAt: '昨天 18:20',
   },
   {
-    id: 'fasting',
+    id: 'first-laxative',
     stage: '居家准备',
-    time: '今天 04:00',
+    time: '检查前一天 20:00',
+    title: '第一次口服泻药',
+    summary: '聚乙二醇 2 盒/包 + 1500ml 水，60 分钟内饮完。',
+    why: '第一次泻药是肠道准备的关键节点，按时喝完能减少检查当天准备不足。',
+    steps: [
+      '检查前一天晚上 20:00 开始口服泻药。',
+      '按预约单要求：聚乙二醇 2 盒/包 + 1500ml 水。',
+      '尽量在 60 分钟内饮完。',
+    ],
+    notices: ['服药后建议靠近卫生间活动。', '若出现明显不适，请记录时间并联系医护人员。'],
+    action: '我已完成第一次泻药',
+    image: bowelPrepImage,
+    status: 'done',
+    completedAt: '昨天 20:58',
+    keyNode: true,
+  },
+  {
+    id: 'second-laxative',
+    stage: '居家准备',
+    time: '检查当天 04:30',
+    title: '第二次口服泻药',
+    summary: '再次服用聚乙二醇 2 盒/包 + 1500ml 水，60 分钟内饮完。',
+    why: '第二次泻药用于完成检查当天的肠道清洁，直接影响检查视野。',
+    steps: [
+      '检查当天早上 04:30 开始口服泻药。',
+      '按预约单要求：聚乙二醇 2 盒/包 + 1500ml 水。',
+      '尽量在 60 分钟内饮完。',
+    ],
+    notices: ['服药后继续观察排便情况。', '如果准备过程中有明显异常，请及时联系工作人员。'],
+    action: '我已完成第二次泻药',
+    image: bowelPrepImage,
+    status: 'done',
+    completedAt: '今天 05:28',
+    keyNode: true,
+  },
+  {
+    id: 'simethicone',
+    stage: '居家准备',
+    time: '检查当天 06:00',
+    title: '口服二甲硅油',
+    summary: '二甲硅油 + 50ml 水，按预约单要求服用。',
+    why: '二甲硅油可帮助减少泡沫，便于检查时观察。',
+    steps: [
+      '检查当天早上 06:00 口服二甲硅油。',
+      '配 50ml 水服用。',
+      '服用后进入严格禁食禁水节点。',
+    ],
+    notices: ['剂量和服用方式以预约单、药袋标签或医护交代为准。', '不要自行加量或提前、推迟太久服用。'],
+    action: '我已服用二甲硅油',
+    image: bowelPrepImage,
+    status: 'done',
+    completedAt: '今天 06:02',
+    keyNode: true,
+  },
+  {
+    id: 'strict-fasting',
+    stage: '居家准备',
+    time: '检查当天 06:00',
     title: '严格禁食禁水',
     summary: '从这个节点开始，不再进食或饮水。',
     why: '禁食禁水是否达标，会直接影响当天检查能否顺利进行。',
-    steps: ['不要吃任何食物。', '不要喝水、牛奶、饮料或含糖液体。', '如需服药，请按工作人员单独说明执行。'],
-    notices: ['不要嚼口香糖或含服糖果。', '如已误食误饮，记录时间并联系工作人员。'],
+    steps: ['检查当天 06:00 开始严格禁食禁水。', '不要吃任何食物。', '不要喝水、牛奶、饮料或含糖液体。'],
+    notices: ['不要嚼口香糖或含服糖果。', '如已误食误饮，请记录时间并联系工作人员。', '如预约单或医生另有交代，以预约单和医生交代为准。'],
     action: '我已开始禁食禁水',
     image: fastingImage,
     status: 'current',
     keyNode: true,
-  },
-  {
-    id: 'arrival',
-    stage: '居家准备',
-    time: '今天 09:30',
-    title: '按时到院报到',
-    summary: '带好材料，到内镜中心护士站报到。',
-    why: '准点报到能减少现场等待，也方便工作人员核对信息。',
-    steps: ['带好身份证、预约凭证和既往检查资料。', '到门诊 3 楼内镜中心护士站报到。', '完成报到后进入到院后流程。'],
-    notices: ['无痛检查建议由家属陪同。', '检查当天不要驾车、骑车或高空作业。'],
-    action: '我已到院报到',
-    image: receptionImage,
-    status: 'pending',
-    keyNode: true,
-    location: {
-      place: '内镜中心护士站',
-      route: '门诊 3 楼电梯出门右转，沿蓝色地贴前行约 30 米。',
-      materials: ['身份证', '预约凭证', '既往检查资料'],
-    },
-  },
-  {
-    id: 'checkin',
-    stage: '到院后',
-    time: '今天 09:35',
-    title: '报到核对',
-    summary: '工作人员核对姓名、检查项目和预约信息。',
-    why: '信息核对完成后，后续环节才能继续推进。',
-    steps: ['出示姓名和联系电话。', '核对检查项目和预计手术时间。', '领取后续现场指引。'],
-    notices: ['信息不一致时不要进入下一步，请马上告知工作人员。'],
-    action: '我已完成核对',
-    image: receptionImage,
-    status: 'pending',
-    location: {
-      place: '内镜中心护士站',
-      route: '按护士站现场指引排队核对。',
-      materials: ['身份证', '预约凭证'],
-    },
-  },
-  {
-    id: 'waiting',
-    stage: '到院后',
-    time: '今天 09:45',
-    title: '候诊区等候',
-    summary: '在候诊区等待叫号，保持手机畅通。',
-    why: '等待期间保持可联系，方便工作人员安排下一步。',
-    steps: ['坐在候诊区等待叫号。', '保持禁食禁水。', '如需离开，请先告知工作人员。'],
-    notices: ['候诊期间仍需严格禁食禁水。'],
-    action: '我已进入候诊区',
-    image: receptionImage,
-    status: 'pending',
-    location: {
-      place: '候诊区',
-      route: '护士站右侧蓝色座椅区域。',
-      materials: ['随身物品袋'],
-    },
-  },
-  {
-    id: 'leave',
-    stage: '后续',
-    time: '检查完成后',
-    title: '查看后续说明',
-    summary: '关注饮食、活动、异常情况和报告领取。',
-    why: '后续事项清楚，今天的检查安排才算完整收尾。',
-    steps: ['按说明休息。', '查看报告领取方式。', '如有持续不适，及时联系工作人员。'],
-    notices: ['当天不要驾车、骑车或高空作业。', '持续剧烈腹痛、黑便、发热或头晕明显时及时联系。'],
-    action: '我已查看后续说明',
-    image: postOpImage,
-    status: 'pending',
   },
 ]
 
@@ -594,8 +585,8 @@ function MiniDemo() {
   const [page, setPage] = useState<MiniRootPage>('home')
   const [homeMode, setHomeMode] = useState<HomeMode>('flow')
   const [profileMode, setProfileMode] = useState<ProfileMode>('info')
-  const [selectedNodeId, setSelectedNodeId] = useState('fasting')
-  const [completed, setCompleted] = useState<string[]>(['diet'])
+  const [selectedNodeId, setSelectedNodeId] = useState('strict-fasting')
+  const [completed, setCompleted] = useState<string[]>(['low-residue-diet', 'first-laxative', 'second-laxative', 'simethicone'])
   const [reminderOn, setReminderOn] = useState(true)
   const [latestAssessment, setLatestAssessment] = useState<AssessmentRecord | null>(() => readLatestPatientAssessment())
 
@@ -605,7 +596,7 @@ function MiniDemo() {
         ...node,
         status: completed.includes(node.id)
           ? ('done' as const)
-          : node.id === 'fasting'
+          : node.id === 'strict-fasting'
             ? ('current' as const)
             : node.status === 'late'
               ? ('late' as const)
@@ -812,7 +803,7 @@ function MiniHome({
         <div>
           <span>微信已登录</span>
           <h1>李女士的检查准备</h1>
-          <p>单独胃镜 · 今天 10:00 · 内镜中心</p>
+          <p>胃肠镜检查 · 今天 10:00 · 内镜中心</p>
         </div>
         <Badge variant="secondary">准备中</Badge>
       </section>
@@ -869,13 +860,28 @@ function MiniHome({
 }
 
 function FlowCardCarousel({ nodes, openNode }: { nodes: FlowNode[]; openNode: (id: string) => void }) {
+  const railRef = useRef<HTMLDivElement>(null)
+  const hasCenteredCurrentRef = useRef(false)
+
+  useEffect(() => {
+    if (hasCenteredCurrentRef.current) return
+
+    const rail = railRef.current
+    const currentCard = rail?.querySelector<HTMLElement>('.flow-node-card.is-featured')
+    if (!rail || !currentCard) return
+
+    const targetTop = currentCard.offsetTop - (rail.clientHeight - currentCard.offsetHeight) / 2
+    rail.scrollTop = Math.max(0, targetTop)
+    hasCenteredCurrentRef.current = true
+  }, [nodes])
+
   return (
     <section className="flow-card-carousel" aria-label="今日流程卡片流">
       <div className="mini-section-title flow-carousel-title">
-        <h2>今日流程</h2>
-        <span>上下滑动查看每个节点</span>
+        <h2>院前准备</h2>
+        <span>上下滑动查看来院前节点</span>
       </div>
-      <div className="flow-card-rail">
+      <div className="flow-card-rail" ref={railRef}>
         {nodes.map((node, index) => (
           <motion.button
             key={node.id}
@@ -967,20 +973,18 @@ function MiniNodeDetail({
         </Card>
       )}
 
-      {node.id === 'arrival' && (
-        <Card className="flow-card anesthesia-entry-card">
-          <CardHeader>
-            <CardTitle>麻醉评估</CardTitle>
-            <CardDescription>建议到院前完成；如果未填写，系统会继续发送包含链接和原因的提醒。</CardDescription>
-            <CardAction>
-              <Button variant="outline" size="sm" onClick={openAssessment}>
-                <Stethoscope data-icon="inline-start" />
-                填写麻醉评估
-              </Button>
-            </CardAction>
-          </CardHeader>
-        </Card>
-      )}
+      <Card className="flow-card anesthesia-entry-card">
+        <CardHeader>
+          <CardTitle>麻醉评估</CardTitle>
+          <CardDescription>建议到院前完成；如果未填写，系统会继续发送包含链接和原因的提醒。</CardDescription>
+          <CardAction>
+            <Button variant="outline" size="sm" onClick={openAssessment}>
+              <Stethoscope data-icon="inline-start" />
+              填写麻醉评估
+            </Button>
+          </CardAction>
+        </CardHeader>
+      </Card>
 
       <Card className="flow-card">
         <CardHeader>
