@@ -365,7 +365,6 @@ svg {
 }
 
 .home-dashboard-main span,
-.home-assessment-strip span,
 .flow-node-meta em,
 .flow-bracelet-button span {
   display: block;
@@ -743,42 +742,6 @@ svg {
 .flow-card-carousel.is-hospital-visit .flow-node-card.is-done img {
   opacity: 0.06;
   transform: none;
-}
-
-.home-assessment-strip {
-  display: grid;
-  gap: 12px;
-  border: 1px solid rgba(79, 189, 159, 0.2);
-  border-radius: 22px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.93), rgba(235, 250, 243, 0.82)),
-    #f4fbf8;
-  padding: 15px;
-  box-shadow: 0 18px 38px rgba(45, 137, 116, 0.09);
-}
-
-.home-assessment-strip strong {
-  display: block;
-  margin-top: 4px;
-  color: var(--ink);
-  font-size: 17px;
-  font-weight: 950;
-  line-height: 1.25;
-}
-
-.home-assessment-strip p {
-  margin: 7px 0 0;
-  color: var(--soft-ink);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.compact-home-reminder [data-slot="card-header"] {
-  gap: 4px;
-}
-
-.compact-home-reminder .reminder-plan-list {
-  gap: 8px;
 }
 
 .next-card::after,

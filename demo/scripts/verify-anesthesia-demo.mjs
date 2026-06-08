@@ -8,7 +8,7 @@ const assessmentUi = readFileSync(resolve('src/components/assessment-ui.tsx'), '
 const assessmentLib = readFileSync(resolve('src/lib/assessment.ts'), 'utf8');
 
 const checks = [
-  ['patient home exposes a primary anesthesia card', app.includes('院前麻醉评估') && app.includes('现在填写评估表')],
+  ['patient home keeps assessment promotion out of the main flow screen', !app.includes('home-assessment-strip') && !app.includes('compact-home-reminder') && app.includes("label: '评估'")],
   ['patient mini bottom navigation keeps only home assessment and profile roots', app.includes('function MiniBottomNav') && app.includes('const miniNavItems') && app.includes('label: \'首页\'') && app.includes('label: \'评估\'') && app.includes('label: \'我的\'') && !app.includes('<span>流程</span>') && !app.includes('<span>后续</span>')],
   ['patient home uses apple watch style vertical card flow', app.includes('function FlowCardCarousel') && app.includes('flow-card-carousel') && app.includes('flow-node-card') && app.includes('is-featured')],
   ['patient pre-hospital card flow contains bowel preparation schedule', app.includes('检查前一天 18:00') && app.includes('进食低渣饮食') && app.includes('检查前一天 20:00') && app.includes('第一次口服泻药') && app.includes('检查当天 04:30') && app.includes('第二次口服泻药') && app.includes('检查当天 06:00') && app.includes('口服二甲硅油') && app.includes('严格禁食禁水')],

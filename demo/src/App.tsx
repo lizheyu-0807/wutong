@@ -865,9 +865,7 @@ function MiniDemo() {
                   nodes={nodes}
                   nextNode={nextNode}
                   progressValue={progressValue}
-                  reminderOn={reminderOn}
                   openNode={openNode}
-                  openAssessment={openAssessment}
                 />
               </MotionPage>
             )}
@@ -992,17 +990,13 @@ function MiniHome({
   nodes,
   nextNode,
   progressValue,
-  reminderOn,
   openNode,
-  openAssessment,
 }: {
   flowTitle: string
   nodes: FlowNode[]
   nextNode: FlowNode
   progressValue: number
-  reminderOn: boolean
   openNode: (id: string) => void
-  openAssessment: () => void
 }) {
   return (
     <>
@@ -1028,40 +1022,6 @@ function MiniHome({
       </section>
 
       <FlowCardCarousel flowTitle={flowTitle} nodes={nodes} openNode={openNode} />
-
-      <section className="home-assessment-strip">
-        <div>
-          <span>院前麻醉评估</span>
-          <strong>待填写 · 填写后停止同类提醒</strong>
-          <p>请在到院前填写，方便提前识别用药、过敏、禁食禁水和基础病风险。</p>
-          <div className="reason-note">
-            <Stethoscope />
-            <span>未填写前会在院前多次提醒，并附上评估链接和填写原因；填写后自动停止推送。</span>
-          </div>
-        </div>
-        <Button size="lg" onClick={openAssessment}>
-            现在填写评估表
-          <ChevronRight data-icon="inline-end" />
-        </Button>
-      </section>
-
-      <Card className="flow-card reminder-plan-card compact-home-reminder">
-        <CardHeader>
-          <CardTitle>院前评估提醒</CardTitle>
-          <CardDescription>{reminderOn ? '节点提醒已开启' : '节点提醒未开启'} · 待填写评估会继续提醒。</CardDescription>
-        </CardHeader>
-        <CardContent className="reminder-plan-list">
-          {assessmentReminderPlan.slice(0, 2).map((item) => (
-            <div key={item.time}>
-              <span className={`mini-dot is-${item.status}`} />
-              <span>
-                <strong>{item.time} · {item.channel}</strong>
-                <em>{item.message}</em>
-              </span>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </>
   )
 }
