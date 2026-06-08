@@ -659,6 +659,92 @@ svg {
   filter: saturate(0.78) contrast(0.92);
 }
 
+.flow-card-carousel.is-hospital-visit .flow-card-rail {
+  gap: 14px;
+  padding-top: 10px;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 98px;
+  padding: 13px 15px;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card.is-featured {
+  min-height: 134px;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card.is-done {
+  width: 80%;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card.is-pending {
+  width: 88%;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 18px;
+  line-height: 1.18;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card.is-featured .flow-node-title {
+  font-size: 23px;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-title i {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 24px;
+  border: 1px solid rgba(79, 189, 159, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  color: rgba(43, 111, 104, 0.88);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-title span {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card img {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 58px;
+  max-height: 66px;
+  opacity: 0.08;
+  transform: none;
+}
+
+.flow-card-carousel.is-hospital-visit .flow-node-card:not(.is-featured) img,
+.flow-card-carousel.is-hospital-visit .flow-node-card.is-done img {
+  opacity: 0.06;
+  transform: none;
+}
+
 .home-assessment-strip {
   display: grid;
   gap: 12px;

@@ -1096,7 +1096,7 @@ function FlowCardCarousel({
   }, [nodes, flowTitle, featuredNodeId])
 
   return (
-    <section className="flow-card-carousel" aria-label={`${flowTitle}卡片流`}>
+    <section className={`flow-card-carousel ${flowTitle === '医院就诊' ? 'is-hospital-visit' : 'is-pre-hospital'}`} aria-label={`${flowTitle}卡片流`}>
       <div className="mini-section-title flow-carousel-title">
         <h2>{flowTitle}</h2>
         <span>{flowTitle === '医院就诊' ? '按院内动线逐项完成' : '上下滑动查看来院前节点'}</span>
@@ -1124,12 +1124,15 @@ function FlowCardCarousel({
             transition={{ delay: index * 0.045, duration: 0.32, ease: 'easeOut' }}
           >
             <span className="flow-node-line" />
-            <span className="flow-node-body">
-              <span className="flow-node-meta">
-                <em>{statusLabel(node.status)}</em>
-                <strong>{node.time}</strong>
+              <span className="flow-node-body">
+                <span className="flow-node-meta">
+                  <em>{statusLabel(node.status)}</em>
+                  <strong>{node.time}</strong>
+                </span>
+              <span className="flow-node-title">
+                {flowTitle === '医院就诊' && <i>{String(index + 1).padStart(2, '0')}</i>}
+                <span>{node.title}</span>
               </span>
-              <span className="flow-node-title">{node.title}</span>
               <span className="flow-node-summary">{node.summary}</span>
             </span>
             <img src={node.image} alt="" />

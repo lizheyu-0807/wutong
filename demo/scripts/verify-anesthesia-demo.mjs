@@ -16,6 +16,7 @@ const checks = [
   ['pre-hospital card chain ends with an arrival handoff card', app.includes("id: 'arrive-hospital'") && app.includes('我已到达医院')],
   ['hospital visit card chain starts from front desk check-in after hospital arrival', app.includes("id: 'hospital-arrival'") && app.includes("id: 'front-desk-checkin'") && app.includes('到前台 3 号电脑报到')],
   ['hospital visit card chain contains all visible in-hospital nodes', app.includes('麻醉签字') && app.includes('自助缴费机交麻醉药品费') && app.includes('打留置针') && app.includes('候检厅等待叫号') && app.includes('进入检查间进行检查') && app.includes('候检厅留观 30 分钟') && app.includes('留置针室拔除留置针') && app.includes('身体无异常后方可离开医院')],
+  ['hospital visit card chain has compact text-safe card layout', app.includes('is-hospital-visit') && css.includes('.flow-card-carousel.is-hospital-visit') && css.includes('line-clamp: 2')],
   ['patient detail shows a compact flow bracelet return control', app.includes('function FlowBraceletButton') && app.includes('flow-bracelet-button') && app.includes('卡片手链') && app.includes('回到卡片流')],
   ['patient detail folds notices into the node detail page instead of a separate root page', app.includes('node-detail-shell') && app.includes('detail-notice-list') && !app.includes('function MiniNotices') && !app.includes("page === 'notices'")],
   ['patient flow explains repeated reminders stop after submission', app.includes('未填写前会在院前多次提醒') && app.includes('填写后自动停止推送')],
