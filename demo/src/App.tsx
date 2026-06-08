@@ -128,6 +128,8 @@ type PatientIntakeRecord = {
   age: string
   phone: string
   project: ExamProject
+  examDate: string
+  examTime: string
   diseases: BaseDisease[]
   projectGroup: string
   submittedAt: string
@@ -157,6 +159,7 @@ const flowTitles: Record<FlowKind, string> = {
 }
 
 const patientIntakeStorageKey = 'wutongPatientIntake'
+const defaultExamTime = '10:00'
 
 const examProjects: ExamProject[] = ['单独胃镜', '单独肠镜', '无痛胃肠镜']
 
@@ -180,6 +183,10 @@ function getDiseaseTags(diseases: BaseDisease[] = []) {
   return diseases.map((disease) => diseaseLabels[disease]).filter(Boolean)
 }
 
+function getDefaultExamDate() {
+  return getLocalDateString()
+}
+
 function readPatientIntake(): PatientIntakeRecord | null {
   if (typeof window === 'undefined') return null
   try {
@@ -189,6 +196,8 @@ function readPatientIntake(): PatientIntakeRecord | null {
     if (!parsed.name || !parsed.phone || !parsed.project) return null
     return {
       ...parsed,
+      examDate: parsed.examDate || getDefaultExamDate(),
+      examTime: parsed.examTime || defaultExamTime,
       projectGroup: parsed.projectGroup || getProjectGroup(parsed.project),
       diseases: Array.isArray(parsed.diseases) ? parsed.diseases : [],
     }
@@ -211,6 +220,31 @@ function getPatientProject(intake: PatientIntakeRecord | null) {
 
 function getPatientGroup(intake: PatientIntakeRecord | null) {
   return intake?.projectGroup || getProjectGroup(getPatientProject(intake))
+}
+
+function getPatientExamDate(intake: PatientIntakeRecord | null) {
+  return intake?.examDate || getDefaultExamDate()
+}
+
+function getPatientExamTime(intake: PatientIntakeRecord | null) {
+  return intake?.examTime || defaultExamTime
+}
+
+function formatPatientExamDate(dateValue: string, useTodayFallback = false) {
+  if (!dateValue) return useTodayFallback ? '今天' : ''
+  if (useTodayFallback && dateValue === getDefaultExamDate()) return '今天'
+
+  const [, , month, day] = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/) ?? []
+  if (!month || !day) return dateValue
+  return `${Number(month)}月${Number(day)}日`
+}
+
+function formatPatientAppointmentTitle(intake?: PatientIntakeRecord | null) {
+  const examDate = getPatientExamDate(intake ?? null)
+  const examTime = getPatientExamTime(intake ?? null)
+  const project = getPatientProject(intake ?? null)
+  const dateLabel = formatPatientExamDate(examDate, !intake?.examDate)
+  return `${dateLabel} ${examTime} ${project}`
 }
 
 const preHospitalNodes: FlowNode[] = [
@@ -844,6 +878,8 @@ function PatientIntake() {
   const [age, setAge] = useState(existing?.age ?? '')
   const [phone, setPhone] = useState(existing?.phone ?? '')
   const [project, setProject] = useState<ExamProject>(existing?.project ?? '单独胃镜')
+  const [examDate, setExamDate] = useState(existing?.examDate ?? getDefaultExamDate())
+  const [examTime, setExamTime] = useState(existing?.examTime ?? defaultExamTime)
   const [diseases, setDiseases] = useState<BaseDisease[]>(existing?.diseases ?? [])
   const [error, setError] = useState('')
   const projectGroup = getProjectGroup(project)
@@ -857,8 +893,10 @@ function PatientIntake() {
     const trimmedName = name.trim()
     const trimmedAge = age.trim()
     const trimmedPhone = phone.trim()
-    if (!trimmedName || !trimmedAge || !trimmedPhone) {
-      setError('请先完整填写姓名、年龄和电话号码。')
+    const trimmedExamDate = examDate.trim()
+    const trimmedExamTime = examTime.trim()
+    if (!trimmedName || !trimmedAge || !trimmedPhone || !trimmedExamDate || !trimmedExamTime) {
+      setError('请先完整填写姓名、年龄、电话号码、检查日期和检查时间。')
       return
     }
     if (!/^\d{1,3}$/.test(trimmedAge)) {
@@ -875,6 +913,8 @@ function PatientIntake() {
       age: trimmedAge,
       phone: trimmedPhone,
       project,
+      examDate: trimmedExamDate,
+      examTime: trimmedExamTime,
       diseases,
       projectGroup,
       submittedAt: new Date().toISOString(),
@@ -912,6 +952,14 @@ function PatientIntake() {
                 <option key={item} value={item}>{item}</option>
               ))}
             </select>
+          </label>
+          <label className="field-control">
+            <span>检查日期</span>
+            <Input type="date" value={examDate} onChange={(event) => setExamDate(event.target.value)} />
+          </label>
+          <label className="field-control">
+            <span>检查时间</span>
+            <Input type="time" value={examTime} onChange={(event) => setExamTime(event.target.value)} />
           </label>
         </div>
 
@@ -971,6 +1019,8 @@ function MiniDemo() {
   const completedIds = completedByFlow[activeFlow]
   const currentNodeId = baseNodes.find((node) => !completedIds.includes(node.id))?.id ?? baseNodes[baseNodes.length - 1]?.id ?? ''
   const flowTitle = flowTitles[activeFlow]
+  const preHospitalCurrentNodeId = preHospitalNodes.find((node) => !completedByFlow.preHospital.includes(node.id))?.id ?? preHospitalNodes[preHospitalNodes.length - 1]?.id ?? ''
+  const hospitalVisitCurrentNodeId = hospitalVisitNodes.find((node) => !completedByFlow.hospitalVisit.includes(node.id))?.id ?? hospitalVisitNodes[hospitalVisitNodes.length - 1]?.id ?? ''
 
   const nodes = useMemo(
     () =>
@@ -986,6 +1036,25 @@ function MiniDemo() {
         completedAt: completedIds.includes(node.id) ? node.completedAt ?? '刚刚' : node.completedAt,
       })),
     [baseNodes, completedIds, currentNodeId],
+  )
+  const flowSelectorItems = useMemo(
+    () => [
+      {
+        kind: 'preHospital' as const,
+        title: flowTitles.preHospital,
+        nodes: preHospitalNodes,
+        completedIds: completedByFlow.preHospital,
+        currentNodeId: preHospitalCurrentNodeId,
+      },
+      {
+        kind: 'hospitalVisit' as const,
+        title: flowTitles.hospitalVisit,
+        nodes: hospitalVisitNodes,
+        completedIds: completedByFlow.hospitalVisit,
+        currentNodeId: hospitalVisitCurrentNodeId,
+      },
+    ],
+    [completedByFlow, preHospitalCurrentNodeId, hospitalVisitCurrentNodeId],
   )
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes.find((node) => node.id === currentNodeId) ?? nodes[0]
   const nextNode = nodes.find((node) => node.status === 'current') ?? nodes.find((node) => node.status === 'pending') ?? nodes[0]
@@ -1053,6 +1122,7 @@ function MiniDemo() {
           setPage={setPage}
           setHomeMode={setHomeMode}
           openProfile={openProfile}
+          intake={patientIntake}
         />
         <div className="mini-content">
           <AnimatePresence mode="wait">
@@ -1063,7 +1133,9 @@ function MiniDemo() {
                   nodes={nodes}
                   nextNode={nextNode}
                   progressValue={progressValue}
-                  intake={patientIntake}
+                  activeFlow={activeFlow}
+                  flowSelectorItems={flowSelectorItems}
+                  setActiveFlow={setActiveFlow}
                   openNode={openNode}
                 />
               </MotionPage>
@@ -1145,6 +1217,7 @@ function MiniTitleBar({
   setPage,
   setHomeMode,
   openProfile,
+  intake,
 }: {
   page: MiniRootPage
   homeMode: HomeMode
@@ -1152,6 +1225,7 @@ function MiniTitleBar({
   setPage: (page: MiniRootPage) => void
   setHomeMode: (mode: HomeMode) => void
   openProfile: () => void
+  intake?: PatientIntakeRecord | null
 }) {
   const canGoBack = page === 'assessment' || (page === 'home' && homeMode === 'detail') || (page === 'profile' && profileMode === 'assessmentReport')
   const goBack = () => {
@@ -1176,7 +1250,9 @@ function MiniTitleBar({
       ) : (
         <span />
       )}
-      <strong>{miniTitle(page, homeMode, profileMode)}</strong>
+      <strong className={page === 'home' && homeMode === 'flow' ? 'appointment-title' : undefined}>
+        {miniTitle(page, homeMode, profileMode, intake)}
+      </strong>
       <Button variant="ghost" size="icon-sm" onClick={() => setPage('profile')} aria-label="我的信息">
         <UserRound />
       </Button>
@@ -1189,33 +1265,28 @@ function MiniHome({
   nodes,
   nextNode,
   progressValue,
-  intake,
+  activeFlow,
+  flowSelectorItems,
+  setActiveFlow,
   openNode,
 }: {
   flowTitle: string
   nodes: FlowNode[]
   nextNode: FlowNode
   progressValue: number
-  intake: PatientIntakeRecord | null
+  activeFlow: FlowKind
+  flowSelectorItems: Array<{
+    kind: FlowKind
+    title: string
+    nodes: FlowNode[]
+    completedIds: string[]
+    currentNodeId: string
+  }>
+  setActiveFlow: (flow: FlowKind) => void
   openNode: (id: string) => void
 }) {
-  const patientName = getPatientDisplayName(intake)
-  const patientProject = getPatientProject(intake)
-  const projectGroup = getPatientGroup(intake)
-  const diseaseTags = getDiseaseTags(intake?.diseases)
-
   return (
     <>
-      <section className="identity-card home-clean-card">
-        <div>
-          <span>微信已登录</span>
-          <h1>{patientName}的检查准备</h1>
-          <p>{patientProject} · {projectGroup} · 今天 10:00 · 内镜中心</p>
-          {diseaseTags.length > 0 && <em className="patient-risk-inline">后台提醒：{diseaseTags.join('、')}</em>}
-        </div>
-        <Badge variant="secondary">准备中</Badge>
-      </section>
-
       <section className="home-dashboard">
         <div className="home-dashboard-main">
           <span>当前关键节点</span>
@@ -1228,8 +1299,68 @@ function MiniHome({
         </div>
       </section>
 
+      <FlowChainSelector activeFlow={activeFlow} items={flowSelectorItems} setActiveFlow={setActiveFlow} />
+
       <FlowCardCarousel flowTitle={flowTitle} nodes={nodes} openNode={openNode} />
     </>
+  )
+}
+
+function FlowChainSelector({
+  activeFlow,
+  items,
+  setActiveFlow,
+}: {
+  activeFlow: FlowKind
+  items: Array<{
+    kind: FlowKind
+    title: string
+    nodes: FlowNode[]
+    completedIds: string[]
+    currentNodeId: string
+  }>
+  setActiveFlow: (flow: FlowKind) => void
+}) {
+  return (
+    <section className="flow-chain-switcher" aria-label="切换流程卡片手链">
+      {items.map((item) => {
+        const currentNode = item.nodes.find((node) => node.id === item.currentNodeId) ?? item.nodes[0]
+        const progressValue = Math.round((item.completedIds.length / item.nodes.length) * 100)
+        const isActive = item.kind === activeFlow
+
+        return (
+          <button
+            key={item.kind}
+            type="button"
+            className={`flow-chain-card ${isActive ? 'is-active' : ''}`}
+            onClick={() => setActiveFlow(item.kind)}
+            aria-pressed={isActive}
+          >
+            <span className="flow-chain-card-copy">
+              <em>{isActive ? '正在查看' : '切换到'}</em>
+              <strong>{item.title}</strong>
+              <span>{currentNode?.title ?? '待开始'}</span>
+            </span>
+            <span className="flow-chain-mini-stack" aria-hidden="true">
+              {item.nodes.slice(0, 5).map((node, index) => (
+                <i
+                  key={node.id}
+                  className={
+                    item.completedIds.includes(node.id)
+                      ? 'is-done'
+                      : node.id === item.currentNodeId
+                        ? 'is-current'
+                        : undefined
+                  }
+                  style={{ '--chain-index': index } as React.CSSProperties}
+                />
+              ))}
+            </span>
+            <span className="flow-chain-progress">{progressValue}%</span>
+          </button>
+        )
+      })}
+    </section>
   )
 }
 
@@ -1480,6 +1611,7 @@ function MiniProfile({
   const patientPhone = getPatientPhone(intake)
   const patientProject = getPatientProject(intake)
   const projectGroup = getPatientGroup(intake)
+  const appointmentLabel = `${formatPatientExamDate(getPatientExamDate(intake))} ${getPatientExamTime(intake)}`
   const diseaseTags = getDiseaseTags(intake?.diseases)
 
   return (
@@ -1495,7 +1627,7 @@ function MiniProfile({
       <Card className="flow-card">
         <CardHeader>
           <CardTitle>当前检查人</CardTitle>
-          <CardDescription>{patientProject} · 今天 10:00</CardDescription>
+          <CardDescription>{patientProject} · {appointmentLabel}</CardDescription>
         </CardHeader>
         <CardContent className="location-list">
           <InfoLine label="检查地点" value="内镜中心" />
@@ -2774,11 +2906,12 @@ function statusLabel(status: NodeStatus) {
   return '待开始'
 }
 
-function miniTitle(page: MiniRootPage, homeMode: HomeMode, profileMode: ProfileMode) {
+function miniTitle(page: MiniRootPage, homeMode: HomeMode, profileMode: ProfileMode, intake?: PatientIntakeRecord | null) {
   if (page === 'home' && homeMode === 'detail') return '事项详情'
   if (page === 'profile' && profileMode === 'assessmentReport') return '麻醉评估报告'
+  if (page === 'home') return formatPatientAppointmentTitle(intake)
   const titles: Record<MiniRootPage, string> = {
-    home: '我的检查准备',
+    home: formatPatientAppointmentTitle(intake),
     assessment: '麻醉评估',
     profile: '我的信息',
   }
