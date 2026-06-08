@@ -8,6 +8,11 @@ const assessmentUi = readFileSync(resolve('src/components/assessment-ui.tsx'), '
 const assessmentLib = readFileSync(resolve('src/lib/assessment.ts'), 'utf8');
 
 const checks = [
+  ['patient scan intake route collects registration fields', app.includes("type RouteView = 'mini' | 'admin' | 'assessment' | 'intake'") && app.includes('function PatientIntake') && app.includes('扫码登记') && app.includes('姓名') && app.includes('年龄') && app.includes('电话号码') && app.includes('检查项目')],
+  ['patient scan intake groups by exam project and saves local demo data', app.includes('patientIntakeStorageKey') && app.includes('getProjectGroup') && app.includes('单独胃镜组') && app.includes('单独肠镜组') && app.includes('无痛胃肠镜组') && app.includes("localStorage.setItem(patientIntakeStorageKey")],
+  ['patient scan intake disease choices are limited to confirmed conditions', app.includes('冠心病') && app.includes('高血压') && app.includes('糖尿病') && app.includes('以上都没有') && !app.includes('脑梗/卒中')],
+  ['patient home and profile read intake registration data', app.includes('readPatientIntake') && app.includes('intake={patientIntake}') && app.includes('getPatientDisplayName') && app.includes('getDiseaseTags')],
+  ['admin shows intake grouping and disease reminder tags', app.includes('登记分组') && app.includes('基础疾病提醒') && app.includes('需重点提醒/电话确认') && app.includes('risk-tag-list')],
   ['patient home keeps assessment promotion out of the main flow screen', !app.includes('home-assessment-strip') && !app.includes('compact-home-reminder') && app.includes("label: '评估'")],
   ['patient mini bottom navigation keeps only home assessment and profile roots', app.includes('function MiniBottomNav') && app.includes('const miniNavItems') && app.includes('label: \'首页\'') && app.includes('label: \'评估\'') && app.includes('label: \'我的\'') && !app.includes('<span>流程</span>') && !app.includes('<span>后续</span>')],
   ['patient home uses apple watch style vertical card flow', app.includes('function FlowCardCarousel') && app.includes('flow-card-carousel') && app.includes('flow-node-card') && app.includes('is-featured')],

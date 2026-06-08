@@ -16,6 +16,7 @@ import {
   MessageSquareText,
   PencilLine,
   PhoneCall,
+  QrCode,
   RefreshCcw,
   Search,
   Send,
@@ -72,13 +73,15 @@ import {
 } from '@/lib/assessment'
 import type { AssessmentRecord } from '@/lib/assessment'
 
-type RouteView = 'mini' | 'admin' | 'assessment'
+type RouteView = 'mini' | 'admin' | 'assessment' | 'intake'
 type MiniRootPage = 'home' | 'assessment' | 'profile'
 type HomeMode = 'flow' | 'detail'
 type ProfileMode = 'info' | 'assessmentReport'
 type AdminPage = 'overview' | 'users' | 'assessmentAdmin' | 'assessmentRecords' | 'templates' | 'content' | 'touch' | 'account'
 type NodeStatus = 'done' | 'current' | 'late' | 'pending'
 type FlowKind = 'preHospital' | 'hospitalVisit'
+type ExamProject = '单独胃镜' | '单独肠镜' | '无痛胃肠镜'
+type BaseDisease = 'coronaryHeartDisease' | 'hypertension' | 'diabetes'
 
 type FlowNode = {
   id: string
@@ -116,6 +119,18 @@ type Visitor = {
   assessmentStatus: '待填写评估' | '已完成评估'
   assessmentReminder: string
   assessmentLastTouch: string
+  intakeGroup?: string
+  intakeDiseases?: BaseDisease[]
+}
+
+type PatientIntakeRecord = {
+  name: string
+  age: string
+  phone: string
+  project: ExamProject
+  diseases: BaseDisease[]
+  projectGroup: string
+  submittedAt: string
 }
 
 type TemplateRow = {
@@ -139,6 +154,63 @@ type PatientFilters = {
 const flowTitles: Record<FlowKind, string> = {
   preHospital: '院前准备',
   hospitalVisit: '医院就诊',
+}
+
+const patientIntakeStorageKey = 'wutongPatientIntake'
+
+const examProjects: ExamProject[] = ['单独胃镜', '单独肠镜', '无痛胃肠镜']
+
+const diseaseOptions: Array<{ id: BaseDisease; label: string }> = [
+  { id: 'coronaryHeartDisease', label: '冠心病' },
+  { id: 'hypertension', label: '高血压' },
+  { id: 'diabetes', label: '糖尿病' },
+]
+
+const diseaseLabels: Record<BaseDisease, string> = {
+  coronaryHeartDisease: '冠心病',
+  hypertension: '高血压',
+  diabetes: '糖尿病',
+}
+
+function getProjectGroup(project: ExamProject) {
+  return `${project}组`
+}
+
+function getDiseaseTags(diseases: BaseDisease[] = []) {
+  return diseases.map((disease) => diseaseLabels[disease]).filter(Boolean)
+}
+
+function readPatientIntake(): PatientIntakeRecord | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(patientIntakeStorageKey)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as PatientIntakeRecord
+    if (!parsed.name || !parsed.phone || !parsed.project) return null
+    return {
+      ...parsed,
+      projectGroup: parsed.projectGroup || getProjectGroup(parsed.project),
+      diseases: Array.isArray(parsed.diseases) ? parsed.diseases : [],
+    }
+  } catch {
+    return null
+  }
+}
+
+function getPatientDisplayName(intake: PatientIntakeRecord | null) {
+  return intake?.name?.trim() || '李女士'
+}
+
+function getPatientPhone(intake: PatientIntakeRecord | null) {
+  return intake?.phone?.trim() || '138****6201'
+}
+
+function getPatientProject(intake: PatientIntakeRecord | null) {
+  return intake?.project || '单独胃镜'
+}
+
+function getPatientGroup(intake: PatientIntakeRecord | null) {
+  return intake?.projectGroup || getProjectGroup(getPatientProject(intake))
 }
 
 const preHospitalNodes: FlowNode[] = [
@@ -419,6 +491,8 @@ const visitors: Visitor[] = [
     assessmentStatus: '待填写评估',
     assessmentReminder: '院前已推送 2 次',
     assessmentLastTouch: '今天 07:30 小程序提醒已读',
+    intakeGroup: '单独胃镜组',
+    intakeDiseases: ['hypertension'],
   },
   {
     id: 'v2',
@@ -435,6 +509,8 @@ const visitors: Visitor[] = [
     assessmentStatus: '待填写评估',
     assessmentReminder: '院前已推送 3 次，建议电话兜底',
     assessmentLastTouch: '今天 08:00 评估链接未读',
+    intakeGroup: '无痛胃肠镜组',
+    intakeDiseases: ['coronaryHeartDisease', 'diabetes'],
   },
   {
     id: 'v3',
@@ -451,6 +527,8 @@ const visitors: Visitor[] = [
     assessmentStatus: '已完成评估',
     assessmentReminder: '停止推送',
     assessmentLastTouch: '昨天 21:18 已提交评估表',
+    intakeGroup: '单独肠镜组',
+    intakeDiseases: [],
   },
   {
     id: 'v4',
@@ -467,6 +545,8 @@ const visitors: Visitor[] = [
     assessmentStatus: '已完成评估',
     assessmentReminder: '停止推送',
     assessmentLastTouch: '今天 08:05 护士已查看重点风险',
+    intakeGroup: '单独胃镜组',
+    intakeDiseases: ['coronaryHeartDisease'],
   },
 ]
 
@@ -753,7 +833,123 @@ function App() {
       {route === 'mini' && <MiniDemo />}
       {route === 'admin' && <AdminDemo />}
       {route === 'assessment' && <AnesthesiaAssessment onBack={() => { window.location.hash = 'mini' }} />}
+      {route === 'intake' && <PatientIntake />}
     </TooltipProvider>
+  )
+}
+
+function PatientIntake() {
+  const existing = readPatientIntake()
+  const [name, setName] = useState(existing?.name ?? '')
+  const [age, setAge] = useState(existing?.age ?? '')
+  const [phone, setPhone] = useState(existing?.phone ?? '')
+  const [project, setProject] = useState<ExamProject>(existing?.project ?? '单独胃镜')
+  const [diseases, setDiseases] = useState<BaseDisease[]>(existing?.diseases ?? [])
+  const [error, setError] = useState('')
+  const projectGroup = getProjectGroup(project)
+  const diseaseTags = getDiseaseTags(diseases)
+
+  const toggleDisease = (disease: BaseDisease) => {
+    setDiseases((items) => (items.includes(disease) ? items.filter((item) => item !== disease) : [...items, disease]))
+  }
+
+  const submit = () => {
+    const trimmedName = name.trim()
+    const trimmedAge = age.trim()
+    const trimmedPhone = phone.trim()
+    if (!trimmedName || !trimmedAge || !trimmedPhone) {
+      setError('请先完整填写姓名、年龄和电话号码。')
+      return
+    }
+    if (!/^\d{1,3}$/.test(trimmedAge)) {
+      setError('年龄请填写数字。')
+      return
+    }
+    if (!/^1\d{10}$/.test(trimmedPhone)) {
+      setError('电话号码请填写 11 位手机号。')
+      return
+    }
+
+    const record: PatientIntakeRecord = {
+      name: trimmedName,
+      age: trimmedAge,
+      phone: trimmedPhone,
+      project,
+      diseases,
+      projectGroup,
+      submittedAt: new Date().toISOString(),
+    }
+    localStorage.setItem(patientIntakeStorageKey, JSON.stringify(record))
+    window.location.hash = 'mini'
+  }
+
+  return (
+    <main className="intake-screen">
+      <section className="intake-panel">
+        <div className="intake-hero">
+          <span>扫码登记</span>
+          <h1>完善检查信息</h1>
+          <p>系统会根据检查项目完成分组，并把基础疾病作为后台提醒标签。</p>
+        </div>
+
+        <div className="intake-form">
+          <label className="field-control">
+            <span>姓名</span>
+            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="请输入患者姓名" />
+          </label>
+          <label className="field-control">
+            <span>年龄</span>
+            <Input value={age} onChange={(event) => setAge(event.target.value)} inputMode="numeric" placeholder="请输入年龄" />
+          </label>
+          <label className="field-control">
+            <span>电话号码</span>
+            <Input value={phone} onChange={(event) => setPhone(event.target.value)} inputMode="tel" placeholder="请输入 11 位手机号" />
+          </label>
+          <label className="field-control">
+            <span>检查项目</span>
+            <select className="select-input" value={project} onChange={(event) => setProject(event.target.value as ExamProject)}>
+              {examProjects.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="intake-section">
+          <span>是否有以下基础疾病</span>
+          <div className="intake-choice-grid">
+            {diseaseOptions.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={diseases.includes(item.id) ? 'active' : ''}
+                onClick={() => toggleDisease(item.id)}
+              >
+                <CheckCircle2 />
+                {item.label}
+              </button>
+            ))}
+            <button type="button" className={diseases.length === 0 ? 'active clear' : 'clear'} onClick={() => setDiseases([])}>
+              <Check />
+              以上都没有
+            </button>
+          </div>
+        </div>
+
+        <section className="intake-result-card">
+          <span>当前分组</span>
+          <strong>{projectGroup}</strong>
+          <em>{diseaseTags.length ? `后台提醒：${diseaseTags.join('、')} · 需重点提醒/电话确认` : '暂无基础疾病标签，按普通提醒策略执行'}</em>
+        </section>
+
+        {error && <p className="intake-error">{error}</p>}
+
+        <Button size="lg" onClick={submit}>
+          保存并进入患者端
+          <ChevronRight data-icon="inline-end" />
+        </Button>
+      </section>
+    </main>
   )
 }
 
@@ -761,6 +957,7 @@ function MiniDemo() {
   const [page, setPage] = useState<MiniRootPage>('home')
   const [homeMode, setHomeMode] = useState<HomeMode>('flow')
   const [profileMode, setProfileMode] = useState<ProfileMode>('info')
+  const [patientIntake, setPatientIntake] = useState<PatientIntakeRecord | null>(() => readPatientIntake())
   const [activeFlow, setActiveFlow] = useState<FlowKind>('preHospital')
   const [selectedNodeId, setSelectedNodeId] = useState('strict-fasting')
   const [completedByFlow, setCompletedByFlow] = useState<Record<FlowKind, string[]>>({
@@ -822,6 +1019,7 @@ function MiniDemo() {
 
   const openProfile = () => {
     setLatestAssessment(readLatestPatientAssessment())
+    setPatientIntake(readPatientIntake())
     setProfileMode('info')
     setPage('profile')
   }
@@ -865,6 +1063,7 @@ function MiniDemo() {
                   nodes={nodes}
                   nextNode={nextNode}
                   progressValue={progressValue}
+                  intake={patientIntake}
                   openNode={openNode}
                 />
               </MotionPage>
@@ -891,7 +1090,7 @@ function MiniDemo() {
             )}
             {page === 'profile' && profileMode === 'info' && (
               <MotionPage key="profile">
-                <MiniProfile assessment={latestAssessment} openAssessmentReport={openAssessmentReport} />
+                <MiniProfile intake={patientIntake} assessment={latestAssessment} openAssessmentReport={openAssessmentReport} />
               </MotionPage>
             )}
             {page === 'profile' && profileMode === 'assessmentReport' && (
@@ -990,21 +1189,29 @@ function MiniHome({
   nodes,
   nextNode,
   progressValue,
+  intake,
   openNode,
 }: {
   flowTitle: string
   nodes: FlowNode[]
   nextNode: FlowNode
   progressValue: number
+  intake: PatientIntakeRecord | null
   openNode: (id: string) => void
 }) {
+  const patientName = getPatientDisplayName(intake)
+  const patientProject = getPatientProject(intake)
+  const projectGroup = getPatientGroup(intake)
+  const diseaseTags = getDiseaseTags(intake?.diseases)
+
   return (
     <>
       <section className="identity-card home-clean-card">
         <div>
           <span>微信已登录</span>
-          <h1>李女士的检查准备</h1>
-          <p>胃肠镜检查 · 今天 10:00 · 内镜中心</p>
+          <h1>{patientName}的检查准备</h1>
+          <p>{patientProject} · {projectGroup} · 今天 10:00 · 内镜中心</p>
+          {diseaseTags.length > 0 && <em className="patient-risk-inline">后台提醒：{diseaseTags.join('、')}</em>}
         </div>
         <Badge variant="secondary">准备中</Badge>
       </section>
@@ -1261,30 +1468,39 @@ function FlowBraceletButton({
 }
 
 function MiniProfile({
+  intake,
   assessment,
   openAssessmentReport,
 }: {
+  intake: PatientIntakeRecord | null
   assessment: AssessmentRecord | null
   openAssessmentReport: () => void
 }) {
+  const patientName = getPatientDisplayName(intake)
+  const patientPhone = getPatientPhone(intake)
+  const patientProject = getPatientProject(intake)
+  const projectGroup = getPatientGroup(intake)
+  const diseaseTags = getDiseaseTags(intake?.diseases)
+
   return (
     <>
       <section className="identity-card profile-card">
         <div>
           <span>登录信息</span>
-          <h1>李女士</h1>
-          <p>微信授权登录 · 手机号 138****6201</p>
+          <h1>{patientName}</h1>
+          <p>微信授权登录 · 手机号 {patientPhone}</p>
         </div>
         <UserCheck />
       </section>
       <Card className="flow-card">
         <CardHeader>
           <CardTitle>当前检查人</CardTitle>
-          <CardDescription>单独胃镜 · 今天 10:00</CardDescription>
+          <CardDescription>{patientProject} · 今天 10:00</CardDescription>
         </CardHeader>
         <CardContent className="location-list">
           <InfoLine label="检查地点" value="内镜中心" />
-          <InfoLine label="流程模板" value="单独胃镜 · 10:00" />
+          <InfoLine label="登记分组" value={projectGroup} />
+          <InfoLine label="基础疾病" value={diseaseTags.length ? diseaseTags.join('、') : '以上都没有'} />
           <InfoLine label="准备状态" value="准备中" />
         </CardContent>
       </Card>
@@ -1561,6 +1777,10 @@ function AdminTopbar() {
           <Smartphone data-icon="inline-start" />
           小程序入口
         </Button>
+        <Button variant="outline" onClick={() => { window.location.hash = 'intake' }}>
+          <QrCode data-icon="inline-start" />
+          扫码登记
+        </Button>
         <Button variant="outline" onClick={() => { window.location.hash = 'assessment' }}>
           <Stethoscope data-icon="inline-start" />
           填写评估表
@@ -1770,6 +1990,7 @@ function AdminUsers({
                 <TableRow>
                   <TableHead>患者</TableHead>
                   <TableHead>项目</TableHead>
+                  <TableHead>登记分组</TableHead>
                   <TableHead>预计手术时间</TableHead>
                   <TableHead>完成度</TableHead>
                   <TableHead>麻醉评估</TableHead>
@@ -1786,6 +2007,7 @@ function AdminUsers({
                       <small>{visitor.phone}</small>
                     </TableCell>
                     <TableCell>{visitor.project}</TableCell>
+                    <TableCell>{visitor.intakeGroup ?? getProjectGroup(visitor.project as ExamProject)}</TableCell>
                     <TableCell>{visitor.examTime}</TableCell>
                     <TableCell>{visitor.progress}</TableCell>
                     <TableCell><StatusPill label={visitor.assessmentStatus} /></TableCell>
@@ -1819,12 +2041,21 @@ function AdminUsers({
           </CardHeader>
           <CardContent className="detail-stack">
             <InfoLine label="完成度" value={selectedVisitor.progress} />
+            <InfoLine label="登记分组" value={selectedVisitor.intakeGroup ?? getProjectGroup(selectedVisitor.project as ExamProject)} />
+            <InfoLine label="基础疾病提醒" value={(selectedVisitor.intakeDiseases?.length ?? 0) > 0 ? `${getDiseaseTags(selectedVisitor.intakeDiseases).join('、')} · 需重点提醒/电话确认` : '以上都没有'} />
             <InfoLine label="最近完成时间" value={selectedVisitor.latestCompletedAt} />
             <InfoLine label="预计手术时间" value={selectedVisitor.examTime} />
             <InfoLine label="麻醉评估" value={`${selectedVisitor.assessmentStatus} · ${selectedVisitor.assessmentReminder}`} />
             <InfoLine label="最近评估触达" value={selectedVisitor.assessmentLastTouch} />
             <InfoLine label="异常状态" value={selectedVisitor.exception} />
             <InfoLine label="建议对策" value={selectedVisitor.handling} />
+            <div className="risk-tag-list">
+              {(selectedVisitor.intakeDiseases?.length ?? 0) > 0 ? (
+                getDiseaseTags(selectedVisitor.intakeDiseases).map((tag) => <StatusPill key={tag} label={tag} />)
+              ) : (
+                <StatusPill label="以上都没有" />
+              )}
+            </div>
             <div className="node-check-list">
               {preHospitalNodes.slice(0, 5).map((node) => (
                 <div key={node.id}>
@@ -2559,6 +2790,7 @@ function readRoute(): RouteView {
   if (raw === 'admin') return 'admin'
   if (raw === 'mini') return 'mini'
   if (raw === 'assessment') return 'assessment'
+  if (raw === 'intake') return 'intake'
   return window.innerWidth < 760 ? 'mini' : 'admin'
 }
 
