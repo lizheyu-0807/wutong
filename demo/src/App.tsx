@@ -78,6 +78,7 @@ type HomeMode = 'flow' | 'detail'
 type ProfileMode = 'info' | 'assessmentReport'
 type AdminPage = 'overview' | 'users' | 'assessmentAdmin' | 'assessmentRecords' | 'templates' | 'content' | 'touch' | 'account'
 type NodeStatus = 'done' | 'current' | 'late' | 'pending'
+type FlowKind = 'preHospital' | 'hospitalVisit'
 
 type FlowNode = {
   id: string
@@ -135,7 +136,12 @@ type PatientFilters = {
   keyword: string
 }
 
-const flowNodes: FlowNode[] = [
+const flowTitles: Record<FlowKind, string> = {
+  preHospital: '院前准备',
+  hospitalVisit: '医院就诊',
+}
+
+const preHospitalNodes: FlowNode[] = [
   {
     id: 'low-residue-diet',
     stage: '居家准备',
@@ -224,6 +230,176 @@ const flowNodes: FlowNode[] = [
     image: fastingImage,
     status: 'current',
     keyNode: true,
+  },
+  {
+    id: 'arrive-hospital',
+    stage: '到院后',
+    time: '检查当天 08:30',
+    title: '到达医院',
+    summary: '完成院前准备后，前往医院内镜中心，准备进入院内就诊流程。',
+    why: '到达医院后，流程会从居家准备切换到院内就诊，下一步直接去前台 3 号电脑报到。',
+    steps: [
+      '确认已经完成禁食禁水、泻药、二甲硅油等来院前准备。',
+      '携带预约单、身份证或医保卡等材料到达内镜中心。',
+      '到院后点击本卡片，进入“医院就诊”卡片手链。',
+    ],
+    notices: ['到院后不要自行进食或饮水。', '如路上出现明显不适，请先联系现场工作人员。'],
+    action: '我已到达医院',
+    image: fastingImage,
+    status: 'pending',
+    location: {
+      place: '内镜中心入口',
+      route: '到达医院后按院内指引前往内镜中心。',
+      materials: ['预约单', '身份证或医保卡', '检查相关资料'],
+    },
+  },
+]
+
+const hospitalVisitNodes: FlowNode[] = [
+  {
+    id: 'hospital-arrival',
+    stage: '到院后',
+    time: '到院后',
+    title: '到达医院',
+    summary: '已经到达医院，进入院内就诊流程。',
+    why: '到院后系统会把来院前准备收束，后续按现场流程逐项完成。',
+    steps: ['到达医院内镜中心。', '确认随身材料齐全。', '继续前往前台 3 号电脑报到。'],
+    notices: ['到院后仍需保持禁食禁水。', '如错过预约时间，请先到服务台说明情况。'],
+    action: '我已到达医院',
+    image: fastingImage,
+    status: 'done',
+    completedAt: '今天 08:30',
+    location: {
+      place: '内镜中心入口',
+      route: '从医院入口按导诊标识前往内镜中心。',
+      materials: ['预约单', '身份证或医保卡'],
+    },
+  },
+  {
+    id: 'front-desk-checkin',
+    stage: '到院后',
+    time: '到院后第一步',
+    title: '到前台 3 号电脑报到',
+    summary: '到前台 3 号电脑完成报到，等待工作人员确认信息。',
+    why: '报到后工作人员才能确认你已经到院，并把你纳入当天检查队列。',
+    steps: ['到达内镜中心前台。', '在 3 号电脑或指定报到点完成报到。', '听从工作人员安排，等待下一步麻醉签字。'],
+    notices: ['报到时请准备预约单和身份证或医保卡。', '如果找不到 3 号电脑，请直接问前台工作人员。'],
+    action: '我已完成报到',
+    image: bowelPrepImage,
+    status: 'current',
+    keyNode: true,
+    location: {
+      place: '内镜中心前台',
+      route: '到院后先到前台 3 号电脑报到。',
+      materials: ['预约单', '身份证或医保卡'],
+    },
+  },
+  {
+    id: 'anesthesia-signature',
+    stage: '到院后',
+    time: '报到后',
+    title: '麻醉签字',
+    summary: '按现场安排完成麻醉相关知情同意签字。',
+    why: '麻醉签字用于确认麻醉方式、风险告知和患者知情同意，是无痛检查前的必要环节。',
+    steps: ['等待工作人员叫号或指引。', '阅读麻醉知情同意内容。', '确认无误后完成签字。'],
+    notices: ['有药物过敏、既往麻醉异常或近期不适，请主动告知。', '如未完成线上麻醉评估，请尽快补填。'],
+    action: '我已完成麻醉签字',
+    image: fastingImage,
+    status: 'pending',
+    keyNode: true,
+  },
+  {
+    id: 'anesthesia-payment',
+    stage: '到院后',
+    time: '签字后',
+    title: '自助缴费机交麻醉药品费',
+    summary: '到自助缴费机完成麻醉药品相关费用缴纳。',
+    why: '缴费完成后，后续麻醉和检查流程才能继续推进。',
+    steps: ['按工作人员指引前往自助缴费机。', '使用身份证、医保卡或就诊码查询费用。', '完成麻醉药品费缴纳并保留缴费凭证。'],
+    notices: ['如费用查询不到，请返回前台确认。', '支付失败时不要重复多次操作，先联系工作人员。'],
+    action: '我已完成麻醉缴费',
+    image: bowelPrepImage,
+    status: 'pending',
+  },
+  {
+    id: 'iv-cannula',
+    stage: '到院后',
+    time: '缴费后',
+    title: '打留置针',
+    summary: '到留置针室完成静脉留置针穿刺。',
+    why: '留置针用于检查过程中的麻醉和必要用药，是进入检查前的重要准备。',
+    steps: ['按指引前往留置针室。', '配合护士核对身份。', '完成留置针后妥善保护针口。'],
+    notices: ['穿刺后不要弯折或拉扯针管。', '如针口疼痛、渗血或明显肿胀，请立即告知护士。'],
+    action: '我已完成留置针',
+    image: fastingImage,
+    status: 'pending',
+    keyNode: true,
+  },
+  {
+    id: 'waiting-call',
+    stage: '到院后',
+    time: '留置针后',
+    title: '候检厅等待叫号',
+    summary: '到候检厅等待叫号，保持手机或叫号屏可关注。',
+    why: '候检厅等待是进入检查间前的排队阶段，按叫号进入可以减少现场混乱。',
+    steps: ['前往候检厅。', '留意叫号屏、广播或工作人员通知。', '保持禁食禁水，等待进入检查间。'],
+    notices: ['不要离开候检区域太远。', '有头晕、心慌、恶心等不适请及时告知工作人员。'],
+    action: '我已进入候检厅',
+    image: bowelPrepImage,
+    status: 'pending',
+  },
+  {
+    id: 'enter-exam-room',
+    stage: '到院后',
+    time: '叫号后',
+    title: '进入检查间进行检查',
+    summary: '听到叫号后进入检查间，配合医护完成检查。',
+    why: '进入检查间后会进行身份核对、体位摆放、麻醉和检查操作。',
+    steps: ['听到叫号后前往检查间。', '配合完成身份核对。', '按医护要求摆好体位并完成检查。'],
+    notices: ['进入检查间前不要擅自摘除或调整留置针。', '如有突发不适，请马上告诉医护人员。'],
+    action: '我已完成检查',
+    image: fastingImage,
+    status: 'pending',
+    keyNode: true,
+  },
+  {
+    id: 'observation-30min',
+    stage: '后续',
+    time: '检查后',
+    title: '候检厅留观 30 分钟',
+    summary: '检查结束后在候检厅留观 30 分钟，确认身体状态稳定。',
+    why: '无痛检查后需要观察麻醉恢复情况，确认没有明显不适后再进入离院流程。',
+    steps: ['检查结束后按指引回到候检厅。', '在现场留观约 30 分钟。', '等待工作人员确认恢复情况。'],
+    notices: ['留观期间不要自行离开医院。', '如有头晕、胸闷、腹痛加重等情况，请立即告知医护人员。'],
+    action: '我已完成 30 分钟留观',
+    image: bowelPrepImage,
+    status: 'pending',
+  },
+  {
+    id: 'remove-iv-cannula',
+    stage: '后续',
+    time: '留观后',
+    title: '留置针室拔除留置针',
+    summary: '留观结束后，到留置针室拔除留置针。',
+    why: '拔除留置针后需要短时间按压针口，避免出血或皮下淤青。',
+    steps: ['按工作人员指引回到留置针室。', '由护士拔除留置针。', '按要求按压针口并观察是否渗血。'],
+    notices: ['不要自行拔针。', '拔针后针口如持续出血，请及时找护士处理。'],
+    action: '我已拔除留置针',
+    image: fastingImage,
+    status: 'pending',
+  },
+  {
+    id: 'leave-hospital',
+    stage: '后续',
+    time: '离院前',
+    title: '身体无异常后方可离开医院',
+    summary: '确认没有明显不适后，再由家属陪同离开医院。',
+    why: '无痛检查后身体恢复需要时间，确认无异常后离院更安全。',
+    steps: ['确认无明显头晕、胸闷、腹痛加重等异常。', '查看医护交代的检查后注意事项。', '建议由家属陪同离院。'],
+    notices: ['检查当天不要开车、骑车或进行危险操作。', '如回家后出现明显不适，请及时联系医院或就医。'],
+    action: '我已安全离院',
+    image: bowelPrepImage,
+    status: 'pending',
   },
 ]
 
@@ -585,31 +761,51 @@ function MiniDemo() {
   const [page, setPage] = useState<MiniRootPage>('home')
   const [homeMode, setHomeMode] = useState<HomeMode>('flow')
   const [profileMode, setProfileMode] = useState<ProfileMode>('info')
+  const [activeFlow, setActiveFlow] = useState<FlowKind>('preHospital')
   const [selectedNodeId, setSelectedNodeId] = useState('strict-fasting')
-  const [completed, setCompleted] = useState<string[]>(['low-residue-diet', 'first-laxative', 'second-laxative', 'simethicone'])
+  const [completedByFlow, setCompletedByFlow] = useState<Record<FlowKind, string[]>>({
+    preHospital: ['low-residue-diet', 'first-laxative', 'second-laxative', 'simethicone'],
+    hospitalVisit: ['hospital-arrival'],
+  })
   const [reminderOn, setReminderOn] = useState(true)
   const [latestAssessment, setLatestAssessment] = useState<AssessmentRecord | null>(() => readLatestPatientAssessment())
 
+  const baseNodes = activeFlow === 'preHospital' ? preHospitalNodes : hospitalVisitNodes
+  const completedIds = completedByFlow[activeFlow]
+  const currentNodeId = baseNodes.find((node) => !completedIds.includes(node.id))?.id ?? baseNodes[baseNodes.length - 1]?.id ?? ''
+  const flowTitle = flowTitles[activeFlow]
+
   const nodes = useMemo(
     () =>
-      flowNodes.map((node) => ({
+      baseNodes.map((node) => ({
         ...node,
-        status: completed.includes(node.id)
+        status: completedIds.includes(node.id)
           ? ('done' as const)
-          : node.id === 'strict-fasting'
+          : node.id === currentNodeId
             ? ('current' as const)
             : node.status === 'late'
               ? ('late' as const)
               : ('pending' as const),
-        completedAt: completed.includes(node.id) ? node.completedAt ?? '刚刚' : node.completedAt,
+        completedAt: completedIds.includes(node.id) ? node.completedAt ?? '刚刚' : node.completedAt,
       })),
-    [completed],
+    [baseNodes, completedIds, currentNodeId],
   )
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes[1]
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes.find((node) => node.id === currentNodeId) ?? nodes[0]
   const nextNode = nodes.find((node) => node.status === 'current') ?? nodes.find((node) => node.status === 'pending') ?? nodes[0]
   const progressValue = Math.round((nodes.filter((node) => node.status === 'done').length / nodes.length) * 100)
 
+  const switchToHospitalVisit = () => {
+    setActiveFlow('hospitalVisit')
+    setSelectedNodeId('front-desk-checkin')
+    setHomeMode('flow')
+    setPage('home')
+  }
+
   const openNode = (id: string) => {
+    if (activeFlow === 'preHospital' && id === 'arrive-hospital') {
+      switchToHospitalVisit()
+      return
+    }
     setSelectedNodeId(id)
     setHomeMode('detail')
     setPage('home')
@@ -637,7 +833,14 @@ function MiniDemo() {
   }
 
   const completeNode = (id: string) => {
-    setCompleted((items) => (items.includes(id) ? items : [...items, id]))
+    if (activeFlow === 'preHospital' && id === 'arrive-hospital') {
+      switchToHospitalVisit()
+      return
+    }
+    setCompletedByFlow((flows) => ({
+      ...flows,
+      [activeFlow]: flows[activeFlow].includes(id) ? flows[activeFlow] : [...flows[activeFlow], id],
+    }))
     returnToFlow()
   }
 
@@ -656,8 +859,9 @@ function MiniDemo() {
         <div className="mini-content">
           <AnimatePresence mode="wait">
             {page === 'home' && homeMode === 'flow' && (
-              <MotionPage key="home-flow">
+              <MotionPage key={`home-flow-${activeFlow}`}>
                 <MiniHome
+                  flowTitle={flowTitle}
                   nodes={nodes}
                   nextNode={nextNode}
                   progressValue={progressValue}
@@ -668,8 +872,9 @@ function MiniDemo() {
               </MotionPage>
             )}
             {page === 'home' && homeMode === 'detail' && (
-              <MotionPage key={`detail-${selectedNode.id}`}>
+              <MotionPage key={`detail-${activeFlow}-${selectedNode.id}`}>
                 <MiniNodeDetail
+                  flowTitle={flowTitle}
                   node={selectedNode}
                   nodes={nodes}
                   reminderOn={reminderOn}
@@ -783,6 +988,7 @@ function MiniTitleBar({
 }
 
 function MiniHome({
+  flowTitle,
   nodes,
   nextNode,
   progressValue,
@@ -790,6 +996,7 @@ function MiniHome({
   openNode,
   openAssessment,
 }: {
+  flowTitle: string
   nodes: FlowNode[]
   nextNode: FlowNode
   progressValue: number
@@ -820,7 +1027,7 @@ function MiniHome({
         </div>
       </section>
 
-      <FlowCardCarousel nodes={nodes} openNode={openNode} />
+      <FlowCardCarousel flowTitle={flowTitle} nodes={nodes} openNode={openNode} />
 
       <section className="home-assessment-strip">
         <div>
@@ -859,9 +1066,22 @@ function MiniHome({
   )
 }
 
-function FlowCardCarousel({ nodes, openNode }: { nodes: FlowNode[]; openNode: (id: string) => void }) {
+function FlowCardCarousel({
+  flowTitle,
+  nodes,
+  openNode,
+}: {
+  flowTitle: string
+  nodes: FlowNode[]
+  openNode: (id: string) => void
+}) {
   const railRef = useRef<HTMLDivElement>(null)
   const hasCenteredCurrentRef = useRef(false)
+  const featuredNodeId = nodes.find((node) => node.status === 'current')?.id ?? nodes[0]?.id ?? ''
+
+  useEffect(() => {
+    hasCenteredCurrentRef.current = false
+  }, [flowTitle, featuredNodeId])
 
   useEffect(() => {
     if (hasCenteredCurrentRef.current) return
@@ -873,15 +1093,22 @@ function FlowCardCarousel({ nodes, openNode }: { nodes: FlowNode[]; openNode: (i
     const targetTop = currentCard.offsetTop - (rail.clientHeight - currentCard.offsetHeight) / 2
     rail.scrollTop = Math.max(0, targetTop)
     hasCenteredCurrentRef.current = true
-  }, [nodes])
+  }, [nodes, flowTitle, featuredNodeId])
 
   return (
-    <section className="flow-card-carousel" aria-label="今日流程卡片流">
+    <section className="flow-card-carousel" aria-label={`${flowTitle}卡片流`}>
       <div className="mini-section-title flow-carousel-title">
-        <h2>院前准备</h2>
-        <span>上下滑动查看来院前节点</span>
+        <h2>{flowTitle}</h2>
+        <span>{flowTitle === '医院就诊' ? '按院内动线逐项完成' : '上下滑动查看来院前节点'}</span>
       </div>
-      <div className="flow-card-rail" ref={railRef}>
+      <motion.div
+        key={flowTitle}
+        className="flow-card-rail"
+        ref={railRef}
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.34, ease: 'easeOut' }}
+      >
         {nodes.map((node, index) => (
           <motion.button
             key={node.id}
@@ -908,12 +1135,13 @@ function FlowCardCarousel({ nodes, openNode }: { nodes: FlowNode[]; openNode: (i
             <img src={node.image} alt="" />
           </motion.button>
         ))}
-      </div>
+      </motion.div>
     </section>
   )
 }
 
 function MiniNodeDetail({
+  flowTitle,
   node,
   nodes,
   reminderOn,
@@ -923,6 +1151,7 @@ function MiniNodeDetail({
   returnToFlow,
   openNode,
 }: {
+  flowTitle: string
   node: FlowNode
   nodes: FlowNode[]
   reminderOn: boolean
@@ -934,7 +1163,7 @@ function MiniNodeDetail({
 }) {
   return (
     <section className="node-detail-shell">
-      <FlowBraceletButton nodes={nodes} currentNodeId={node.id} returnToFlow={returnToFlow} openNode={openNode} />
+      <FlowBraceletButton flowTitle={flowTitle} nodes={nodes} currentNodeId={node.id} returnToFlow={returnToFlow} openNode={openNode} />
 
       <section className="node-hero node-detail-hero">
         <div>
@@ -1025,11 +1254,13 @@ function MiniNodeDetail({
 }
 
 function FlowBraceletButton({
+  flowTitle,
   nodes,
   currentNodeId,
   returnToFlow,
   openNode,
 }: {
+  flowTitle: string
   nodes: FlowNode[]
   currentNodeId: string
   returnToFlow: () => void
@@ -1042,9 +1273,9 @@ function FlowBraceletButton({
       animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
       transition={{ duration: 0.28, ease: 'easeOut' }}
     >
-      <button type="button" className="flow-bracelet-button" onClick={returnToFlow} aria-label="回到卡片流">
+      <button type="button" className="flow-bracelet-button" onClick={returnToFlow} aria-label={`回到${flowTitle}卡片流`} title={`回到卡片流：${flowTitle}`}>
         <span>卡片手链</span>
-        <strong>回到卡片流</strong>
+        <strong>{flowTitle}</strong>
         <div className="flow-bracelet-stack" aria-hidden="true">
           {nodes.slice(0, 5).map((node, index) => (
             <i key={node.id} className={node.id === currentNodeId ? 'active' : ''} style={{ transform: `translateY(${index * 5}px) scale(${1 - index * 0.055})` }} />
@@ -1632,7 +1863,7 @@ function AdminUsers({
             <InfoLine label="异常状态" value={selectedVisitor.exception} />
             <InfoLine label="建议对策" value={selectedVisitor.handling} />
             <div className="node-check-list">
-              {flowNodes.slice(0, 5).map((node) => (
+              {preHospitalNodes.slice(0, 5).map((node) => (
                 <div key={node.id}>
                   <span className={`mini-dot is-${node.status}`} />
                   <span>
